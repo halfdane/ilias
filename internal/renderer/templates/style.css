@@ -99,6 +99,35 @@ a.tile {
   cursor: pointer;
 }
 
+.tile--wide {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas:
+    "icon name"
+    "slots slots";
+  align-items: center;
+  text-align: left;
+  gap: 0 0.8rem;
+}
+
+.tile--wide .tile-icon,
+.tile--wide .tile-icon-placeholder {
+  grid-area: icon;
+  margin-bottom: 0;
+}
+
+.tile--wide .tile-name {
+  grid-area: name;
+  margin-bottom: 0;
+}
+
+.tile--wide .tile-slots {
+  grid-area: slots;
+  justify-content: flex-start;
+  margin-top: 0.6rem;
+}
+
 .tile-icon {
   width: 48px;
   height: 48px;

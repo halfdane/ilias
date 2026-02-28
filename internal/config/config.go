@@ -29,6 +29,7 @@ type Tile struct {
 	Name     string    `yaml:"name"`
 	Display  string    `yaml:"display"`
 	Link     string    `yaml:"link,omitempty"`
+	Wide     bool      `yaml:"wide,omitempty"`
 	Generate *Generate `yaml:"generate,omitempty"`
 	Slots    []Slot    `yaml:"slots,omitempty"`
 }

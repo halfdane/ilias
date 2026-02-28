@@ -27,6 +27,7 @@ type TileResult struct {
 	Name    string
 	Display string
 	Link    string
+	Wide    bool
 	Slots   []SlotResult
 }
 
@@ -93,6 +94,7 @@ func Run(ctx context.Context, cfg *config.Config, opts Options) (*DashboardResul
 				Name:    tile.Name,
 				Display: tile.Display,
 				Link:    tile.Link,
+				Wide:    tile.Wide,
 				Slots:   make([]SlotResult, len(tile.Slots)),
 			}
 

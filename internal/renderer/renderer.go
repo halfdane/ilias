@@ -42,6 +42,7 @@ type groupData struct {
 type tileData struct {
 	Name     string
 	Link     string
+	Wide     bool
 	IconData template.URL // data URI or empty
 	Slots    []slotData
 }
@@ -99,6 +100,7 @@ func Render(result *runner.DashboardResult, configDir, version string) ([]byte, 
 			td := tileData{
 				Name: t.Name,
 				Link: t.Link,
+				Wide: t.Wide,
 			}
 
 			// Resolve display: file or URL → data URI
