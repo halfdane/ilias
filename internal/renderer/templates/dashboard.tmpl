@@ -18,10 +18,12 @@
     <div class="tiles">
       {{range .Tiles}}
       {{if .Link}}<a class="tile" href="{{.Link}}" target="_blank" rel="noopener">{{else}}<div class="tile">{{end}}
+        {{if .HasIcon}}
         {{if .IconData}}
         <img class="tile-icon" src="{{.IconData}}" alt="{{.Name}}">
         {{else}}
         <div class="tile-icon-placeholder">{{firstChar .Name}}</div>
+        {{end}}
         {{end}}
         <div class="tile-name">{{.Name}}</div>
         {{if .Slots}}

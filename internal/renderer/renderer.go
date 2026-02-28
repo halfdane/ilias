@@ -42,6 +42,7 @@ type groupData struct {
 type tileData struct {
 	Name      string
 	Link      string
+	HasIcon   bool         // true when icon field was specified in config
 	IconData  template.URL // data URI or empty
 	BannerURI template.URL // data URI for full-width banner, or empty
 	Slots     []slotData
@@ -103,13 +104,16 @@ func Render(result *runner.DashboardResult, configDir, version string) ([]byte, 
 			}
 
 			// Resolve icon
-			iconURI, err := resolveIcon(t.Icon, configDir)
-			if err != nil {
-				// Not fatal; just skip the icon
-				fmt.Fprintf(os.Stderr, "[warn] resolving icon for %q: %v\n", t.Name, err)
-				td.IconData = ""
-			} else {
-				td.IconData = template.URL(iconURI)
+			if t.Icon != "" {
+				td.HasIcon = true
+				iconURI, err := resolveIcon(t.Icon, configDir)
+				if err != nil {
+					// Not fatal; just skip the icon
+					fmt.Fprintf(os.Stderr, "[warn] resolving icon for %q: %v\n", t.Name, err)
+					td.IconData = ""
+				} else {
+					td.IconData = template.URL(iconURI)
+				}
 			}
 
 			// Resolve banner
