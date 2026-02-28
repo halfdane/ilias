@@ -19,7 +19,7 @@ func TestRun_BasicConfig(t *testing.T) {
 				Tiles: []config.Tile{
 					{
 						Name:    "Echo",
-						Display: "icon.png",
+						Icon: "icon.png",
 						Slots: []config.Slot{
 							{
 								Name: "status",
@@ -93,7 +93,7 @@ func TestRun_FailingCommand(t *testing.T) {
 				Tiles: []config.Tile{
 					{
 						Name:    "Fail",
-						Display: "icon.png",
+						Icon: "icon.png",
 						Slots: []config.Slot{
 							{
 								Name: "status",
@@ -142,7 +142,7 @@ func TestRun_ConcurrentExecution(t *testing.T) {
 				Tiles: []config.Tile{
 					{
 						Name:    "A",
-						Display: "a.png",
+						Icon: "a.png",
 						Slots: []config.Slot{
 							{
 								Name:  "s",
@@ -153,7 +153,7 @@ func TestRun_ConcurrentExecution(t *testing.T) {
 					},
 					{
 						Name:    "B",
-						Display: "b.png",
+						Icon: "b.png",
 						Slots: []config.Slot{
 							{
 								Name:  "s",
@@ -191,7 +191,7 @@ func TestRun_WithGenerate(t *testing.T) {
 				Tiles: []config.Tile{
 					{
 						Name:    "Gen",
-						Display: "icon.png",
+						Icon: "icon.png",
 						Generate: &config.Generate{
 							Command: "echo generated",
 						},

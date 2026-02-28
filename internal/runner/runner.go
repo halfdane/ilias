@@ -25,10 +25,11 @@ type SlotResult struct {
 
 // TileResult holds all the evaluated results for a single tile.
 type TileResult struct {
-	Name    string
-	Display string
-	Link    string
-	Slots   []SlotResult
+	Name   string
+	Icon   string
+	Banner *config.Banner
+	Link   string
+	Slots  []SlotResult
 }
 
 // GroupResult holds all tile results for a group.
@@ -91,10 +92,11 @@ func Run(ctx context.Context, cfg *config.Config, opts Options) (*DashboardResul
 
 		for ti, tile := range group.Tiles {
 			result.Groups[gi].Tiles[ti] = TileResult{
-				Name:    tile.Name,
-				Display: tile.Display,
-				Link:    tile.Link,
-				Slots:   make([]SlotResult, len(tile.Slots)),
+				Name:   tile.Name,
+				Icon:   tile.Icon,
+				Banner: tile.Banner,
+				Link:   tile.Link,
+				Slots:  make([]SlotResult, len(tile.Slots)),
 			}
 
 			// Run generate command if specified

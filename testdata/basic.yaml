@@ -5,7 +5,7 @@ groups:
   - name: "Infrastructure"
     tiles:
       - name: "Nextcloud"
-        display: "icons/nextcloud.png"
+        icon: "icons/nextcloud.png"
         link: "https://cloud.example.com"
         slots:
           - name: "availability"
@@ -24,7 +24,7 @@ groups:
                 status: { id: "unknown", label: "❓" }
 
       - name: "Grafana"
-        display: "https://grafana.example.com/icon.png"
+        icon: "https://grafana.example.com/icon.png"
         link: "https://grafana.example.com"
         slots:
           - name: "status"
@@ -42,7 +42,7 @@ groups:
   - name: "Services"
     tiles:
       - name: "Backup"
-        display: "icons/backup.png"
+        icon: "icons/backup.png"
         generate:
           command: "gen-backup-report --output /tmp/backup.png"
           timeout: "60s"

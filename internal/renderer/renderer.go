@@ -40,10 +40,11 @@ type groupData struct {
 }
 
 type tileData struct {
-	Name     string
-	Link     string
-	IconData template.URL // data URI or empty
-	Slots    []slotData
+	Name      string
+	Link      string
+	IconData  template.URL // data URI or empty
+	BannerURI template.URL // data URI for full-width banner, or empty
+	Slots     []slotData
 }
 
 type slotData struct {
@@ -53,7 +54,7 @@ type slotData struct {
 }
 
 // Render generates the HTML dashboard from the dashboard result.
-// The configDir is used to resolve relative file paths in tile display fields.
+// The configDir is used to resolve relative file paths in tile icon/banner fields.
 // The version string is embedded in the page footer.
 func Render(result *runner.DashboardResult, configDir, version string) ([]byte, error) {
 	css, err := loadCSS()
@@ -101,14 +102,24 @@ func Render(result *runner.DashboardResult, configDir, version string) ([]byte, 
 				Link: t.Link,
 			}
 
-			// Resolve display: file or URL → data URI
-			iconURI, err := resolveIcon(t.Display, configDir)
+			// Resolve icon
+			iconURI, err := resolveIcon(t.Icon, configDir)
 			if err != nil {
 				// Not fatal; just skip the icon
 				fmt.Fprintf(os.Stderr, "[warn] resolving icon for %q: %v\n", t.Name, err)
 				td.IconData = ""
 			} else {
 				td.IconData = template.URL(iconURI)
+			}
+
+			// Resolve banner
+			if t.Banner != nil {
+				bannerURI, err := resolveIcon(t.Banner.Src, configDir)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "[warn] resolving banner for %q: %v\n", t.Name, err)
+				} else {
+					td.BannerURI = template.URL(bannerURI)
+				}
 			}
 
 			td.Slots = make([]slotData, len(t.Slots))

@@ -26,11 +26,18 @@ type Group struct {
 
 // Tile represents a single dashboard tile.
 type Tile struct {
-	Name     string    `yaml:"name"`
-	Display  string    `yaml:"display"`
-	Link     string    `yaml:"link,omitempty"`
+	Name     string   `yaml:"name"`
+	Icon     string   `yaml:"icon,omitempty"`
+	Link     string   `yaml:"link,omitempty"`
+	Banner   *Banner  `yaml:"banner,omitempty"`
 	Generate *Generate `yaml:"generate,omitempty"`
-	Slots    []Slot    `yaml:"slots,omitempty"`
+	Slots    []Slot   `yaml:"slots,omitempty"`
+}
+
+// Banner defines an optional full-width content block shown below the tile header.
+type Banner struct {
+	Src  string `yaml:"src"`
+	Type string `yaml:"type,omitempty"` // "image" (default)
 }
 
 // Generate defines an optional command to run before rendering a tile.
@@ -182,10 +189,6 @@ func validateTile(gi int, gname string, ti int, t Tile) error {
 		return fmt.Errorf("%s: name is required", prefix)
 	}
 	prefix = fmt.Sprintf("config: group[%d] %q, tile[%d] %q", gi, gname, ti, t.Name)
-
-	if t.Display == "" {
-		return fmt.Errorf("%s: display is required", prefix)
-	}
 
 	if t.Generate != nil && t.Generate.Command == "" {
 		return fmt.Errorf("%s: generate.command is required when generate is specified", prefix)

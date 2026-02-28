@@ -147,6 +147,17 @@ a.tile {
   align-self: start;
 }
 
+.tile-banner {
+  grid-column: 1 / -1;
+}
+
+.tile-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+}
+
 .slot {
   display: inline-flex;
   align-items: center;

@@ -13,7 +13,7 @@ groups:
   - name: "Infrastructure"
     tiles:
       - name: "Nextcloud"
-        display: "icons/nextcloud.png"
+        icon: "icons/nextcloud.png"
         link: "https://cloud.example.com"
         generate:
           command: "screenshot https://cloud.example.com -o /tmp/nc.png"
@@ -67,8 +67,8 @@ groups:
 	if tile.Name != "Nextcloud" {
 		t.Errorf("tile name = %q, want %q", tile.Name, "Nextcloud")
 	}
-	if tile.Display != "icons/nextcloud.png" {
-		t.Errorf("tile display = %q, want %q", tile.Display, "icons/nextcloud.png")
+	if tile.Icon != "icons/nextcloud.png" {
+		t.Errorf("tile icon = %q, want %q", tile.Icon, "icons/nextcloud.png")
 	}
 	if tile.Link != "https://cloud.example.com" {
 		t.Errorf("tile link = %q, want %q", tile.Link, "https://cloud.example.com")
@@ -128,7 +128,7 @@ groups:
   - name: "G"
     tiles:
       - name: "T"
-        display: "icon.png"
+        icon: "icon.png"
         slots:
           - name: "s"
             check:
@@ -154,7 +154,7 @@ groups:
   - name: "G"
     tiles:
       - name: "T"
-        display: "icon.png"
+        icon: "icon.png"
         slots:
           - name: "s"
             check:
@@ -189,7 +189,7 @@ groups:
   - name: "G"
     tiles:
       - name: "T"
-        display: "icon.png"
+        icon: "icon.png"
         slots:
           - name: "s"
             default_status: { id: "err", label: "💥" }
@@ -222,12 +222,12 @@ func TestParse_ValidationErrors(t *testing.T) {
 	}{
 		{
 			name:    "missing title",
-			yaml:    `groups: [{name: "G", tiles: [{name: "T", display: "x", slots: [{name: "s", check: {type: "command", target: "echo"}, rules: [{match: {}, status: {id: "ok", label: "✅"}}]}]}]}]`,
+			yaml:    `groups: [{name: "G", tiles: [{name: "T", icon: "x", slots: [{name: "s", check: {type: "command", target: "echo"}, rules: [{match: {}, status: {id: "ok", label: "✅"}}]}]}]}]`,
 			wantErr: "title is required",
 		},
 		{
 			name: "invalid theme",
-			yaml: "title: \"T\"\ntheme: \"blue\"\ngroups: [{name: \"G\", tiles: [{name: \"T\", display: \"x\", slots: [{name: \"s\", check: {type: \"command\", target: \"echo\"}, rules: [{match: {}, status: {id: \"ok\", label: \"ok\"}}]}]}]}]",
+			yaml: "title: \"T\"\ntheme: \"blue\"\ngroups: [{name: \"G\", tiles: [{name: \"T\", icon: \"x\", slots: [{name: \"s\", check: {type: \"command\", target: \"echo\"}, rules: [{match: {}, status: {id: \"ok\", label: \"ok\"}}]}]}]}]",
 			wantErr: "theme must be",
 		},
 		{
@@ -237,27 +237,27 @@ func TestParse_ValidationErrors(t *testing.T) {
 		},
 		{
 			name: "missing tile name",
-			yaml: "title: \"T\"\ngroups:\n  - name: \"G\"\n    tiles:\n      - display: \"x\"\n        slots:\n          - name: \"s\"\n            check: {type: \"command\", target: \"echo\"}\n            rules: [{match: {}, status: {id: \"ok\", label: \"ok\"}}]",
+			yaml: "title: \"T\"\ngroups:\n  - name: \"G\"\n    tiles:\n      - icon: \"x\"\n        slots:\n          - name: \"s\"\n            check: {type: \"command\", target: \"echo\"}\n            rules: [{match: {}, status: {id: \"ok\", label: \"ok\"}}]",
 			wantErr: "name is required",
 		},
 		{
 			name:    "invalid check type",
-			yaml:    "title: \"T\"\ngroups:\n  - name: \"G\"\n    tiles:\n      - name: \"T\"\n        display: \"x\"\n        slots:\n          - name: \"s\"\n            check: {type: \"ftp\", target: \"x\"}\n            rules: [{match: {}, status: {id: \"ok\", label: \"✅\"}}]",
+			yaml:    "title: \"T\"\ngroups:\n  - name: \"G\"\n    tiles:\n      - name: \"T\"\n        icon: \"x\"\n        slots:\n          - name: \"s\"\n            check: {type: \"ftp\", target: \"x\"}\n            rules: [{match: {}, status: {id: \"ok\", label: \"✅\"}}]",
 			wantErr: "check.type must be",
 		},
 		{
 			name:    "missing check target",
-			yaml:    "title: \"T\"\ngroups:\n  - name: \"G\"\n    tiles:\n      - name: \"T\"\n        display: \"x\"\n        slots:\n          - name: \"s\"\n            check: {type: \"http\"}\n            rules: [{match: {}, status: {id: \"ok\", label: \"✅\"}}]",
+			yaml:    "title: \"T\"\ngroups:\n  - name: \"G\"\n    tiles:\n      - name: \"T\"\n        icon: \"x\"\n        slots:\n          - name: \"s\"\n            check: {type: \"http\"}\n            rules: [{match: {}, status: {id: \"ok\", label: \"✅\"}}]",
 			wantErr: "check.target is required",
 		},
 		{
 			name:    "no rules",
-			yaml:    "title: \"T\"\ngroups:\n  - name: \"G\"\n    tiles:\n      - name: \"T\"\n        display: \"x\"\n        slots:\n          - name: \"s\"\n            check: {type: \"command\", target: \"echo\"}",
+			yaml:    "title: \"T\"\ngroups:\n  - name: \"G\"\n    tiles:\n      - name: \"T\"\n        icon: \"x\"\n        slots:\n          - name: \"s\"\n            check: {type: \"command\", target: \"echo\"}",
 			wantErr: "at least one rule is required",
 		},
 		{
 			name:    "missing status id in rule",
-			yaml:    "title: \"T\"\ngroups:\n  - name: \"G\"\n    tiles:\n      - name: \"T\"\n        display: \"x\"\n        slots:\n          - name: \"s\"\n            check: {type: \"command\", target: \"echo\"}\n            rules: [{match: {}, status: {label: \"✅\"}}]",
+			yaml:    "title: \"T\"\ngroups:\n  - name: \"G\"\n    tiles:\n      - name: \"T\"\n        icon: \"x\"\n        slots:\n          - name: \"s\"\n            check: {type: \"command\", target: \"echo\"}\n            rules: [{match: {}, status: {label: \"✅\"}}]",
 			wantErr: "status.id is required",
 		},
 	}

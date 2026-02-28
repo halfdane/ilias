@@ -18,7 +18,7 @@ func TestRender_BasicOutput(t *testing.T) {
 				Tiles: []runner.TileResult{
 					{
 						Name:    "Example",
-						Display: "",
+						Icon: "",
 						Link:    "https://example.com",
 						Slots: []runner.SlotResult{
 							{Name: "status", Status: config.Status{ID: "ok", Label: "✅"}},
@@ -59,7 +59,7 @@ func TestRender_LightTheme(t *testing.T) {
 	result := &runner.DashboardResult{
 		Title:  "Test",
 		Theme:  "light",
-		Groups: []runner.GroupResult{{Name: "G", Tiles: []runner.TileResult{{Name: "T", Display: ""}}}},
+		Groups: []runner.GroupResult{{Name: "G", Tiles: []runner.TileResult{{Name: "T", Icon: ""}}}},
 	}
 
 	html, err := Render(result, "/tmp", "test")
@@ -80,7 +80,7 @@ func TestRender_TileWithoutLink(t *testing.T) {
 			{
 				Name: "G",
 				Tiles: []runner.TileResult{
-					{Name: "NoLink", Display: ""},
+					{Name: "NoLink", Icon: ""},
 				},
 			},
 		},
@@ -106,7 +106,7 @@ func TestRender_TileWithLink(t *testing.T) {
 			{
 				Name: "G",
 				Tiles: []runner.TileResult{
-					{Name: "Linked", Display: "", Link: "https://example.com"},
+					{Name: "Linked", Icon: "", Link: "https://example.com"},
 				},
 			},
 		},
@@ -136,7 +136,7 @@ func TestRender_MultipleSlots(t *testing.T) {
 				Tiles: []runner.TileResult{
 					{
 						Name:    "Multi",
-						Display: "",
+						Icon: "",
 						Slots: []runner.SlotResult{
 							{Name: "avail", Status: config.Status{ID: "ok", Label: "✅"}},
 							{Name: "updates", Status: config.Status{ID: "update", Label: "🔄"}},
@@ -165,7 +165,7 @@ func TestRender_CSSEmbedded(t *testing.T) {
 	result := &runner.DashboardResult{
 		Title:  "Test",
 		Theme:  "dark",
-		Groups: []runner.GroupResult{{Name: "G", Tiles: []runner.TileResult{{Name: "T", Display: ""}}}},
+		Groups: []runner.GroupResult{{Name: "G", Tiles: []runner.TileResult{{Name: "T", Icon: ""}}}},
 	}
 
 	html, err := Render(result, "/tmp", "test")

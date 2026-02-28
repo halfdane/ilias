@@ -143,7 +143,7 @@ func printDryRun(cfg *config.Config) error {
 		fmt.Fprintf(os.Stderr, "Group: %s\n", g.Name)
 		for _, t := range g.Tiles {
 			fmt.Fprintf(os.Stderr, "  Tile: %s\n", t.Name)
-			fmt.Fprintf(os.Stderr, "    Display: %s\n", t.Display)
+			fmt.Fprintf(os.Stderr, "    Icon: %s\n", t.Icon)
 			if t.Link != "" {
 				fmt.Fprintf(os.Stderr, "    Link: %s\n", t.Link)
 			}

@@ -6,7 +6,7 @@ groups:
   - name: "System"
     tiles:
       - name: "Hostname"
-        display: "icon.png"
+        icon: "icon.png"
         slots:
           - name: "status"
             check:
@@ -20,7 +20,7 @@ groups:
                 status: { id: "error", label: "❌" }
 
       - name: "Date"
-        display: "icon.png"
+        icon: "icon.png"
         link: "https://time.is"
         slots:
           - name: "current"
@@ -33,7 +33,7 @@ groups:
                 status: { id: "ok", label: "🕐" }
 
       - name: "Disk"
-        display: "icon.png"
+        icon: "icon.png"
         slots:
           - name: "usage"
             check:
@@ -48,3 +48,38 @@ groups:
                 status: { id: "warn", label: "⚠️" }
               - match: {}
                 status: { id: "critical", label: "🔴" }
+
+
+  - name: Metrics
+    tiles:
+      - name: "CPU Usage"
+        banner:
+          src: "/tmp/cpu.png"
+          type: image
+        generate:
+          command: "prometheus-render --query 'sum(rate(node_cpu_seconds_total{mode!=\"idle\"}[5m])) * 100' --range 24h --title 'CPU %' --output /tmp/cpu.png"
+          timeout: "30s"
+
+      - name: "Memory Usage"
+        banner:
+          src: "/tmp/memory.png"
+          type: image
+        generate:
+          command: "prometheus-render --query '(1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100' --range 24h --title 'Memory %' --output /tmp/memory.png"
+          timeout: "30s"
+
+      - name: "Disk I/O"
+        banner:
+          src: "/tmp/diskio.png"
+          type: image
+        generate:
+          command: "prometheus-render --query 'rate(node_disk_read_bytes_total[5m]) + rate(node_disk_written_bytes_total[5m])' --range 24h --title 'Disk I/O (bytes/s)' --output /tmp/diskio.png"
+          timeout: "30s"
+
+      - name: "Network Traffic"
+        banner:
+          src: "/tmp/network.png"
+          type: image
+        generate:
+          command: "prometheus-render --query 'rate(node_network_receive_bytes_total{device!=\"lo\"}[5m])' --range 24h --title 'Network RX (bytes/s)' --output /tmp/network.png"
+          timeout: "30s"

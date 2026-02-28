@@ -34,6 +34,11 @@
           {{end}}
         </div>
         {{end}}
+        {{if .BannerURI}}
+        <div class="tile-banner">
+          <img src="{{.BannerURI}}" alt="{{.Name}}">
+        </div>
+        {{end}}
       {{if .Link}}</a>{{else}}</div>{{end}}
       {{end}}
     </div>
