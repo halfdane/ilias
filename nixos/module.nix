@@ -140,6 +140,7 @@ in
 
     systemd.services.ilias = {
       description = "ilias static dashboard generator";
+      wantedBy = [ "multi-user.target" ];
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
 
