@@ -12,16 +12,19 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in
       {
-        packages.default = pkgs.buildGoModule {
-          pname = "ilias";
-          version = "0.1.0";
-          src = ./.;
-          vendorHash = "sha256-g+yaVIx4jxpAQ/+WrGKxhVeliYx7nLQe/zsGpxV4Fn4=";
-          meta = {
-            description = "Static dashboard homepage generator";
-            mainProgram = "ilias";
+        packages.default =
+          let iliasVersion = "0.1.0"; in
+          pkgs.buildGoModule {
+            pname = "ilias";
+            version = iliasVersion;
+            src = ./.;
+            vendorHash = "sha256-g+yaVIx4jxpAQ/+WrGKxhVeliYx7nLQe/zsGpxV4Fn4=";
+            ldflags = [ "-X main.version=v${iliasVersion}" ];
+            meta = {
+              description = "Static dashboard homepage generator";
+              mainProgram = "ilias";
+            };
           };
-        };
 
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
