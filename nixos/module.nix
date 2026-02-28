@@ -84,6 +84,22 @@ in
         default = "dashboard.localhost";
         description = "The hostname for the nginx virtual host.";
       };
+
+      forceSSL = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = "Redirect HTTP to HTTPS on the virtual host.";
+      };
+
+      acmeHost = lib.mkOption {
+        type = lib.types.nullOr lib.types.str;
+        default = null;
+        description = ''
+          Use the ACME certificate for this hostname (sets
+          <literal>useACMEHost</literal> on the virtual host). Implies
+          <option>forceSSL</option> is likely desired.
+        '';
+      };
     };
   };
 
@@ -155,6 +171,8 @@ in
       enable = true;
       virtualHosts.${cfg.nginx.hostName} = {
         root = builtins.dirOf cfg.outputPath;
+        forceSSL = cfg.nginx.forceSSL;
+        useACMEHost = cfg.nginx.acmeHost;
         locations."/" = {
           index = builtins.baseNameOf cfg.outputPath;
           tryFiles = "/${builtins.baseNameOf cfg.outputPath} =404";
