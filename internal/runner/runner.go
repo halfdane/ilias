@@ -19,6 +19,7 @@ import (
 type SlotResult struct {
 	Name   string
 	Status config.Status
+	Output string // raw check output, for display on hover
 }
 
 // TileResult holds all the evaluated results for a single tile.
@@ -186,5 +187,5 @@ func runSlot(ctx context.Context, slot config.Slot, logger io.Writer, tileName s
 	status := evaluator.Evaluate(result, slot.Rules, slot.DefaultStatus)
 	fmt.Fprintf(logger, "  [result] %s/%s: %s %s\n", tileName, slot.Name, status.ID, status.Label)
 
-	return SlotResult{Name: slot.Name, Status: status}
+	return SlotResult{Name: slot.Name, Status: status, Output: result.Output}
 }

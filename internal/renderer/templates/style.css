@@ -143,6 +143,29 @@ a.tile {
   background: var(--bg);
   padding: 0.2rem 0.5rem;
   border-radius: 6px;
+  position: relative;
+}
+
+.slot[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 30%;
+  transform: translateX(-30%);
+  background: #0d0e14;
+  color: var(--text);
+  font-size: 0.7rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px var(--shadow);
+  z-index: 100;
+  pointer-events: none;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 2rem));
 }
 
 .slot-label {

@@ -27,7 +27,7 @@
         {{if .Slots}}
         <div class="tile-slots">
           {{range .Slots}}
-          <div class="slot">
+          <div class="slot" {{if .Output}}data-tooltip="{{.Output}}"{{end}}>
             <span class="slot-label">{{.Label}}</span>
             <span class="slot-name">{{.Name}}</span>
           </div>

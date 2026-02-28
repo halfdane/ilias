@@ -105,16 +105,27 @@ func (c *CommandChecker) Check(ctx context.Context) Result {
 			exitCode = exitErr.ExitCode()
 		} else {
 			// Command couldn't be executed at all (not found, permission, timeout, etc.)
+			combined := strings.TrimSpace(stdout.String() + stderr.String())
 			return Result{
 				Code:   -1,
-				Output: strings.TrimSpace(stderr.String()),
+				Output: combined,
 				Err:    fmt.Errorf("executing command: %w", err),
 			}
 		}
 	}
 
+	// Include stderr alongside stdout so failures always have diagnostic output.
+	out := stdout.String()
+	if se := stderr.String(); se != "" {
+		if out != "" {
+			out += "\n" + se
+		} else {
+			out = se
+		}
+	}
+
 	return Result{
 		Code:   exitCode,
-		Output: strings.TrimSpace(stdout.String()),
+		Output: strings.TrimSpace(out),
 	}
 }

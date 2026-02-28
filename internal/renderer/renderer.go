@@ -46,8 +46,9 @@ type tileData struct {
 }
 
 type slotData struct {
-	Name  string
-	Label string
+	Name   string
+	Label  string
+	Output string // raw check output, shown as tooltip
 }
 
 // Render generates the HTML dashboard from the dashboard result.
@@ -109,8 +110,9 @@ func Render(result *runner.DashboardResult, configDir string) ([]byte, error) {
 			td.Slots = make([]slotData, len(t.Slots))
 			for si, s := range t.Slots {
 				td.Slots[si] = slotData{
-					Name:  s.Name,
-					Label: s.Status.Label,
+					Name:   s.Name,
+					Label:  s.Status.Label,
+					Output: strings.TrimSpace(s.Output),
 				}
 			}
 			gd.Tiles[ti] = td
