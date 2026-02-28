@@ -48,10 +48,9 @@ type Generate struct {
 
 // Slot is a named status indicator on a tile.
 type Slot struct {
-	Name          string  `yaml:"name"`
-	Check         Check   `yaml:"check"`
-	Rules         []Rule  `yaml:"rules"`
-	DefaultStatus *Status `yaml:"default_status,omitempty"`
+	Name  string `yaml:"name"`
+	Check Check  `yaml:"check"`
+	Rules []Rule `yaml:"rules"`
 }
 
 // Check defines how to obtain status information (HTTP request or CLI command).
@@ -236,15 +235,6 @@ func validateSlot(prefix string, si int, s Slot) error {
 			if _, err := regexp.Compile(r.Match.Output); err != nil {
 				return fmt.Errorf("%s, rule[%d]: invalid output regex %q: %w", slotPrefix, ri, r.Match.Output, err)
 			}
-		}
-	}
-
-	if s.DefaultStatus != nil {
-		if s.DefaultStatus.ID == "" {
-			return fmt.Errorf("%s: default_status.id is required", slotPrefix)
-		}
-		if s.DefaultStatus.Label == "" {
-			return fmt.Errorf("%s: default_status.label is required", slotPrefix)
 		}
 	}
 

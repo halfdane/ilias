@@ -24,7 +24,7 @@ func TestEvaluate_ExactCodeMatch(t *testing.T) {
 	}
 
 	result := checker.Result{Code: 200, Output: "hello"}
-	status := Evaluate(result, rules, nil)
+	status := Evaluate(result, rules)
 	if status.ID != "ok" {
 		t.Errorf("status = %q, want %q", status.ID, "ok")
 	}
@@ -39,7 +39,7 @@ func TestEvaluate_RegexCodeMatch(t *testing.T) {
 	}
 
 	result := checker.Result{Code: 503, Output: ""}
-	status := Evaluate(result, rules, nil)
+	status := Evaluate(result, rules)
 	if status.ID != "error" {
 		t.Errorf("status = %q, want %q", status.ID, "error")
 	}
@@ -54,7 +54,7 @@ func TestEvaluate_OutputRegexMatch(t *testing.T) {
 	}
 
 	result := checker.Result{Code: 200, Output: `{"maintenance": true}`}
-	status := Evaluate(result, rules, nil)
+	status := Evaluate(result, rules)
 	if status.ID != "warn" {
 		t.Errorf("status = %q, want %q", status.ID, "warn")
 	}
@@ -77,14 +77,14 @@ func TestEvaluate_CombinedMatch(t *testing.T) {
 
 	// Matches both code and output → first rule wins
 	result := checker.Result{Code: 0, Output: "update available"}
-	status := Evaluate(result, rules, nil)
+	status := Evaluate(result, rules)
 	if status.ID != "update" {
 		t.Errorf("status = %q, want %q", status.ID, "update")
 	}
 
 	// Matches code but not output → falls through to second rule
 	result2 := checker.Result{Code: 0, Output: "all good"}
-	status2 := Evaluate(result2, rules, nil)
+	status2 := Evaluate(result2, rules)
 	if status2.ID != "ok" {
 		t.Errorf("status = %q, want %q", status2.ID, "ok")
 	}
@@ -103,7 +103,7 @@ func TestEvaluate_FirstMatchWins(t *testing.T) {
 	}
 
 	result := checker.Result{Code: 200}
-	status := Evaluate(result, rules, nil)
+	status := Evaluate(result, rules)
 	if status.ID != "first" {
 		t.Errorf("status = %q, want %q", status.ID, "first")
 	}
@@ -122,29 +122,13 @@ func TestEvaluate_CatchAll(t *testing.T) {
 	}
 
 	result := checker.Result{Code: 404}
-	status := Evaluate(result, rules, nil)
+	status := Evaluate(result, rules)
 	if status.ID != "fallback" {
 		t.Errorf("status = %q, want %q", status.ID, "fallback")
 	}
 }
 
-func TestEvaluate_NoMatchUsesDefault(t *testing.T) {
-	rules := []config.Rule{
-		{
-			Match:  config.Match{Code: &config.MatchValue{Exact: intPtr(200)}},
-			Status: config.Status{ID: "ok", Label: "✅"},
-		},
-	}
-
-	defaultStatus := &config.Status{ID: "custom-error", Label: "💥"}
-	result := checker.Result{Code: 404}
-	status := Evaluate(result, rules, defaultStatus)
-	if status.ID != "custom-error" {
-		t.Errorf("status = %q, want %q", status.ID, "custom-error")
-	}
-}
-
-func TestEvaluate_NoMatchNoDefaultUsesBuiltin(t *testing.T) {
+func TestEvaluate_NoMatchUsesBuiltin(t *testing.T) {
 	rules := []config.Rule{
 		{
 			Match:  config.Match{Code: &config.MatchValue{Exact: intPtr(200)}},
@@ -153,7 +137,7 @@ func TestEvaluate_NoMatchNoDefaultUsesBuiltin(t *testing.T) {
 	}
 
 	result := checker.Result{Code: 404}
-	status := Evaluate(result, rules, nil)
+	status := Evaluate(result, rules)
 	if status.ID != BuiltinErrorStatus.ID {
 		t.Errorf("status = %q, want %q", status.ID, BuiltinErrorStatus.ID)
 	}
@@ -172,7 +156,7 @@ func TestEvaluate_CheckError_CatchAllMatches(t *testing.T) {
 	}
 
 	result := checker.Result{Err: errors.New("connection refused")}
-	status := Evaluate(result, rules, nil)
+	status := Evaluate(result, rules)
 	if status.ID != "down" {
 		t.Errorf("status = %q, want %q (catch-all should match errors)", status.ID, "down")
 	}
@@ -187,7 +171,7 @@ func TestEvaluate_CheckError_NoMatch(t *testing.T) {
 	}
 
 	result := checker.Result{Err: errors.New("timeout")}
-	status := Evaluate(result, rules, nil)
+	status := Evaluate(result, rules)
 	if status.ID != BuiltinErrorStatus.ID {
 		t.Errorf("status = %q, want %q", status.ID, BuiltinErrorStatus.ID)
 	}
@@ -204,7 +188,7 @@ func TestEvaluate_CheckError_NonCatchAllDoesNotMatch(t *testing.T) {
 	}
 
 	result := checker.Result{Code: 0, Err: errors.New("some error")}
-	status := Evaluate(result, rules, nil)
+	status := Evaluate(result, rules)
 	// Should NOT match the code=0 rule because there's an error
 	if status.ID != BuiltinErrorStatus.ID {
 		t.Errorf("status = %q, want %q (non-catch-all should not match on error)", status.ID, BuiltinErrorStatus.ID)

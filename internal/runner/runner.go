@@ -178,11 +178,7 @@ func runSlot(ctx context.Context, slot config.Slot, logger io.Writer, tileName s
 	chk, err := checker.NewChecker(slot.Check.Type, slot.Check.Target, slot.Check.Timeout.Duration)
 	if err != nil {
 		fmt.Fprintf(logger, "  [error] %s/%s: %v\n", tileName, slot.Name, err)
-		status := evaluator.BuiltinErrorStatus
-		if slot.DefaultStatus != nil {
-			status = *slot.DefaultStatus
-		}
-		return SlotResult{Name: slot.Name, Status: status}
+		return SlotResult{Name: slot.Name, Status: evaluator.BuiltinErrorStatus}
 	}
 
 	result := chk.Check(ctx)
@@ -190,8 +186,18 @@ func runSlot(ctx context.Context, slot config.Slot, logger io.Writer, tileName s
 		fmt.Fprintf(logger, "  [warn] %s/%s: check error: %v\n", tileName, slot.Name, result.Err)
 	}
 
-	status := evaluator.Evaluate(result, slot.Rules, slot.DefaultStatus)
+	output := result.Output
+	if result.Err != nil {
+		errMsg := result.Err.Error()
+		if output != "" {
+			output = output + "\n" + errMsg
+		} else {
+			output = errMsg
+		}
+	}
+
+	status := evaluator.Evaluate(result, slot.Rules)
 	fmt.Fprintf(logger, "  [result] %s/%s: %s %s\n", tileName, slot.Name, status.ID, status.Label)
 
-	return SlotResult{Name: slot.Name, Status: status, Output: result.Output}
+	return SlotResult{Name: slot.Name, Status: status, Output: output}
 }

@@ -17,26 +17,13 @@ var BuiltinErrorStatus = config.Status{
 }
 
 // Evaluate matches a check result against a list of rules (first match wins).
-// If the check itself errored and no rules match, returns the defaultStatus
-// (or BuiltinErrorStatus if nil).
-func Evaluate(result checker.Result, rules []config.Rule, defaultStatus *config.Status) config.Status {
+// Returns BuiltinErrorStatus when no rule matches.
+func Evaluate(result checker.Result, rules []config.Rule) config.Status {
 	for _, rule := range rules {
 		if matchesRule(result, rule.Match) {
 			return rule.Status
 		}
 	}
-
-	// No rule matched
-	if defaultStatus != nil {
-		return *defaultStatus
-	}
-
-	// If the check had an error, use error status
-	if result.Err != nil {
-		return BuiltinErrorStatus
-	}
-
-	// Nothing matched and no error — still return error status as fallback
 	return BuiltinErrorStatus
 }
 

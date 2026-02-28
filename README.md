@@ -26,67 +26,33 @@ ilias generate -c config.yaml -o /tmp/dashboard.html
 
 Open `/tmp/dashboard.html` in a browser. Re-run the command to refresh.
 
-## Configuration reference
+Or drop a file named `config.yaml` in the current directory and run `ilias generate` with no arguments — it writes `index.html` by default.
 
-```yaml
-title: My Dashboard
-theme: dark          # "dark" (default) or "light"
-refresh: 5m          # auto-reload interval; omit to disable
+## Configuration
 
-groups:
-  - name: Group Name
-    tiles:
-      - name: Tile Name
-        icon: /path/to/icon.png   # optional; local file or http(s) URL
-        link: https://example.com # optional; makes the whole tile clickable
-
-        generate:                 # optional; shell command run before rendering
-          command: "some-tool --output /tmp/result.png"
-          timeout: 30s            # default: 60s
-
-        banner:                   # optional; full-width image shown below title/slots
-          src: /tmp/result.png    # local file or http(s) URL
-          type: image             # currently the only type; may be omitted
-
-        slots:                    # optional; list of named status indicators
-          - name: status
-            default_status: { id: unknown, label: "❓" }   # used if the check fails to run
-            check:
-              type: http          # "http" or "command"
-              target: https://example.com/health
-              timeout: 10s        # optional
-            rules:
-              - match:
-                  code: 200       # exact integer, or regex string: "2\\d\\d"
-                  output: "ok"    # optional; regex matched against body / stdout+stderr
-                status: { id: ok, label: "✅" }
-              - match: {}         # catch-all — always place last
-                status: { id: down, label: "🔴" }
-```
-
-### Local computer example
-
-This config works out of the box on any standard Linux machine. Copy it, run `ilias generate`, and get an instant dashboard for your computer.
+Save as `config.yaml` and run `ilias generate`. The example below should work out of the box on most Linux machines and demonstrates every feature.
 
 ```yaml
 title: My Computer
-theme: dark
-refresh: 1m
+theme: dark    # "dark" (default) or "light"
+refresh: 1m   # auto-reload interval; omit to disable
 
 groups:
   - name: System
     tiles:
-      - name: Hostname
+      - name: Uptime
+        # icon: optional local file or http(s) URL embedded as a data URI
+        # link: optional URL — makes the whole tile clickable
         slots:
           - name: uptime
             check:
-              type: command
-              target: uptime -p    # standard on all Linux distros
+              type: command         # "command" or "http"
+              target: uptime -p     # shell command; stdout+stderr available in rules
             rules:
               - match:
-                  code: 0
+                  code: 0           # exact integer exit code
                 status: { id: ok, label: "✅" }
-              - match: {}
+              - match: {}           # catch-all — always place last
                 status: { id: error, label: "❌" }
 
       - name: Disk (root)
@@ -97,7 +63,7 @@ groups:
               target: "df / --output=pcent | tail -1 | tr -d ' '"
             rules:
               - match:
-                  output: "^[0-9]%$|^[0-6]\\d%$"
+                  output: "^[0-6]\\d%$|^[0-9]%$"  # regex on stdout+stderr
                 status: { id: ok, label: "✅ <70%" }
               - match:
                   output: "^[7-8]\\d%$"
@@ -123,7 +89,8 @@ groups:
           - name: temp
             check:
               type: command
-              target: "sensors | awk '/^Package id 0:/ {print $4}'"   # lm-sensors
+              target: "sensors | awk '/^Package id 0:/ {print $4}'"  # lm-sensors
+              timeout: 5s          # per-check timeout; default: none
             rules:
               - match:
                   output: "^\\+[0-3]\\d"
@@ -148,9 +115,9 @@ groups:
                   code: 0
                 status: { id: ok, label: "✅" }
               - match: {}
-                status: { id: error, label: "❌" }
+                status: { id: down, label: "🔴" }
 
-      - name: Internet
+      - name: example.com
         link: https://example.com
         slots:
           - name: reachable
@@ -160,32 +127,36 @@ groups:
               timeout: 5s
             rules:
               - match:
-                  code: 200
+                  code: 200               # exact HTTP status code
+                  output: "Example Domain" # optional: regex on response body
                 status: { id: ok, label: "✅" }
+              - match:
+                  code: "5\\d\\d"         # regex on status code
+                status: { id: error, label: "🔴 5xx" }
               - match: {}
                 status: { id: down, label: "🔴" }
 
   - name: Metrics
     tiles:
+      # generate runs a shell command before rendering — here it produces a PNG.
+      # banner embeds a full-width image in the tile.
       # Requires prometheus-render (https://github.com/halfdane/prometheus-render)
-      # and a local Prometheus instance. The generate command runs first, writes a
-      # PNG, then the banner embeds it full-width in the tile.
+      # and a local Prometheus instance.
       - name: CPU Usage
         banner:
           src: /tmp/ilias_cpu.png
-          type: image
+          type: image             # currently the only type; may be omitted
         generate:
           command: >-
             prometheus-render
             --query 'sum(rate(node_cpu_seconds_total{mode!="idle"}[5m])) * 100'
             --range 1h --title 'CPU %' --output /tmp/ilias_cpu.png
-          timeout: 30s
+          timeout: 30s            # generate timeout; default: 60s
 
-      # Combine generate + banner + slots on one tile
+      # generate + banner + slots can all be combined on one tile
       - name: Disk I/O
         banner:
           src: /tmp/ilias_diskio.png
-          type: image
         generate:
           command: >-
             prometheus-render
@@ -193,10 +164,10 @@ groups:
             --range 1h --title 'Disk I/O (bytes/s)' --output /tmp/ilias_diskio.png
           timeout: 30s
         slots:
-          - name: read
+          - name: writes
             check:
               type: command
-              target: "cat /sys/block/sda/stat | awk '{print $3*512}' | numfmt --to=iec"  # util-linux
+              target: "iostat -d sda 1 1 | awk '/^sda/ {print $4 \" kB/s\"}'  # sysstat"
             rules:
               - match:
                   code: 0
@@ -208,15 +179,52 @@ groups:
 ## CLI
 
 ```
-ilias generate -c config.yaml -o output.html [-v]
-ilias version
+ilias <command> [flags]
 ```
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `generate` | Run all checks and write the static HTML dashboard |
+| `validate` | Parse and validate the config file without running any checks |
+| `version` | Print the version and exit |
+
+### `generate` flags
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `-c` | — | Path to the YAML config file (required) |
-| `-o` | — | Output HTML file path (required) |
-| `-v` | false | Verbose logging to stderr |
+| `-c`, `--config` | `config.yaml` | Path to the YAML config file |
+| `-o`, `--output` | `index.html` | Output HTML file path |
+| `--dry-run` | false | Print what would be checked without executing anything |
+| `--concurrency` | auto (NumCPU) | Maximum number of parallel checks |
+| `-v`, `--verbose` | false | Log progress and results to stderr |
+
+### `validate` flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `-c`, `--config` | `config.yaml` | Path to the YAML config file |
+| `-v`, `--verbose` | false | Verbose output |
+
+**Examples:**
+
+```sh
+# Minimal — reads config.yaml, writes index.html
+ilias generate
+
+# Explicit paths
+ilias generate -c /etc/ilias/config.yaml -o /var/www/dashboard/index.html
+
+# Preview what checks would run, without executing them
+ilias generate --dry-run -c config.yaml
+
+# Validate a config file
+ilias validate -c config.yaml
+
+# Print version
+ilias version
+```
 
 ## NixOS module
 

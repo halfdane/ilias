@@ -27,7 +27,7 @@ Commands:
   version     Print the version and exit
 
 Flags (for generate):
-  -c, --config        Path to config file (default: ./ilias.yaml)
+  -c, --config        Path to config file (default: ./config.yaml)
   -o, --output        Output HTML file path (default: ./index.html)
   --dry-run           Show what would be checked without executing
   --concurrency       Max parallel checks (default: auto)
@@ -77,8 +77,8 @@ func runGenerate(args []string) error {
 	fs := flag.NewFlagSet("generate", flag.ExitOnError)
 
 	opts := GenerateOptions{}
-	fs.StringVar(&opts.ConfigPath, "c", "ilias.yaml", "Path to config file")
-	fs.StringVar(&opts.ConfigPath, "config", "ilias.yaml", "Path to config file")
+	fs.StringVar(&opts.ConfigPath, "c", "config.yaml", "Path to config file")
+	fs.StringVar(&opts.ConfigPath, "config", "config.yaml", "Path to config file")
 	fs.StringVar(&opts.OutputPath, "o", "index.html", "Output HTML file path")
 	fs.StringVar(&opts.OutputPath, "output", "index.html", "Output HTML file path")
 	fs.BoolVar(&opts.DryRun, "dry-run", false, "Show what would be checked without executing")
@@ -158,9 +158,6 @@ func printDryRun(cfg *config.Config) error {
 				}
 				fmt.Fprintln(os.Stderr)
 				fmt.Fprintf(os.Stderr, "      Rules: %d\n", len(s.Rules))
-				if s.DefaultStatus != nil {
-					fmt.Fprintf(os.Stderr, "      Default: %s %s\n", s.DefaultStatus.ID, s.DefaultStatus.Label)
-				}
 			}
 		}
 		fmt.Fprintln(os.Stderr)
@@ -179,8 +176,8 @@ func runValidate(args []string) error {
 	fs := flag.NewFlagSet("validate", flag.ExitOnError)
 
 	opts := ValidateOptions{}
-	fs.StringVar(&opts.ConfigPath, "c", "ilias.yaml", "Path to config file")
-	fs.StringVar(&opts.ConfigPath, "config", "ilias.yaml", "Path to config file")
+	fs.StringVar(&opts.ConfigPath, "c", "config.yaml", "Path to config file")
+	fs.StringVar(&opts.ConfigPath, "config", "config.yaml", "Path to config file")
 	fs.BoolVar(&opts.Verbose, "v", false, "Verbose logging to stderr")
 	fs.BoolVar(&opts.Verbose, "verbose", false, "Verbose logging to stderr")
 

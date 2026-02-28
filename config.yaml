@@ -1,0 +1,123 @@
+title: My Computer
+theme: dark    # "dark" (default) or "light"
+refresh: 1m   # auto-reload interval; omit to disable
+
+groups:
+  - name: System
+    tiles:
+      - name: Uptime
+        # icon: optional local file or http(s) URL embedded as a data URI
+        # link: optional URL — makes the whole tile clickable
+        slots:
+          - name: uptime
+            check:
+              type: command         # "command" or "http"
+              target: uptime        # shell command; stdout+stderr available in rules
+            rules:
+              - match:
+                  code: 0           # exact integer exit code
+                status: { id: ok, label: "✅" }
+              - match: {}           # catch-all — always place last
+                status: { id: error, label: "❌" }
+
+      - name: Disk (root)
+        slots:
+          - name: usage
+            check:
+              type: command
+              target: "df / --output=pcent | tail -1 | tr -d ' '"
+            rules:
+              - match:
+                  output: "^[0-6]\\d%$|^[0-9]%$"  # regex on stdout+stderr
+                status: { id: ok, label: "✅ <70%" }
+              - match:
+                  output: "^[7-8]\\d%$"
+                status: { id: warn, label: "⚠️ 70–89%" }
+              - match: {}
+                status: { id: critical, label: "🔴 ≥90%" }
+
+      - name: Memory
+        slots:
+          - name: available
+            check:
+              type: command
+              target: "free -h | awk '/^Mem:/ {print $7 \" free\"}'"  # procps
+            rules:
+              - match:
+                  code: 0
+                status: { id: ok, label: "✅" }
+              - match: {}
+                status: { id: error, label: "❌" }
+
+  - name: Network
+    tiles:
+      - name: Gateway
+        slots:
+          - name: ping
+            check:
+              type: command
+              target: "ping -c 1 -W 1 google.com"
+            rules:
+              - match:
+                  code: 0
+                status: { id: ok, label: "✅" }
+              - match: {}
+                status: { id: down, label: "🔴" }
+
+      - name: example.com
+        link: https://example.com
+        slots:
+          - name: reachable
+            check:
+              type: http
+              target: https://example.com
+              timeout: 5s
+            rules:
+              - match:
+                  code: 200               # exact HTTP status code
+                  output: "Example Domain" # optional: regex on response body
+                status: { id: ok, label: "✅" }
+              - match:
+                  code: "5\\d\\d"         # regex on status code
+                status: { id: error, label: "🔴 5xx" }
+              - match: {}
+                status: { id: down, label: "🔴" }
+
+  - name: Metrics
+    tiles:
+      # generate runs a shell command before rendering — here it produces a PNG.
+      # banner embeds a full-width image in the tile.
+      # Requires prometheus-render (https://github.com/halfdane/prometheus-render)
+      # and a local Prometheus instance.
+      - name: CPU Usage
+        banner:
+          src: /tmp/ilias_cpu.png
+          type: image             # currently the only type; may be omitted
+        generate:
+          command: >-
+            prometheus-render
+            --query 'sum(rate(node_cpu_seconds_total{mode!="idle"}[5m])) * 100'
+            --range 1h --title 'CPU %' --output /tmp/ilias_cpu.png
+          timeout: 30s            # generate timeout; default: 60s
+
+      # generate + banner + slots can all be combined on one tile
+      - name: Disk I/O
+        banner:
+          src: /tmp/ilias_diskio.png
+        generate:
+          command: >-
+            prometheus-render
+            --query 'rate(node_disk_read_bytes_total[5m]) + rate(node_disk_written_bytes_total[5m])'
+            --range 1h --title 'Disk I/O (bytes/s)' --output /tmp/ilias_diskio.png
+          timeout: 30s
+        slots:
+          - name: writes
+            check:
+              type: command
+              target: "iostat -d sda 1 1 | awk '/^sda/ {print $4 \" kB/s\"}'  # sysstat"
+            rules:
+              - match:
+                  code: 0
+                status: { id: ok, label: "✅" }
+              - match: {}
+                status: { id: error, label: "❌" }

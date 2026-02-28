@@ -24,8 +24,8 @@ func TestHTTPChecker_Success(t *testing.T) {
 	if result.Code != 200 {
 		t.Errorf("code = %d, want 200", result.Code)
 	}
-	if result.Output != `{"status": "ok"}` {
-		t.Errorf("output = %q, want %q", result.Output, `{"status": "ok"}`)
+	if result.Output != "HTTP 200 OK" {
+		t.Errorf("output = %q, want %q", result.Output, "HTTP 200 OK")
 	}
 }
 

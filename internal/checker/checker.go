@@ -68,15 +68,12 @@ func (c *HTTPChecker) Check(ctx context.Context) Result {
 	}
 	defer resp.Body.Close()
 
-	// Read body with a size limit to avoid unbounded memory usage.
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20)) // 1 MiB limit
-	if err != nil {
-		return Result{Code: resp.StatusCode, Err: fmt.Errorf("reading response body: %w", err)}
-	}
+	// Drain and discard body so the connection can be reused.
+	_, _ = io.Copy(io.Discard, resp.Body)
 
 	return Result{
 		Code:   resp.StatusCode,
-		Output: string(body),
+		Output: fmt.Sprintf("HTTP %d %s", resp.StatusCode, http.StatusText(resp.StatusCode)),
 	}
 }
 

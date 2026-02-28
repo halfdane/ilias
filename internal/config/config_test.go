@@ -182,38 +182,6 @@ groups:
 	}
 }
 
-func TestParse_DefaultStatus(t *testing.T) {
-	yaml := `
-title: "Test"
-groups:
-  - name: "G"
-    tiles:
-      - name: "T"
-        icon: "icon.png"
-        slots:
-          - name: "s"
-            default_status: { id: "err", label: "💥" }
-            check:
-              type: "command"
-              target: "echo ok"
-            rules:
-              - match: {}
-                status: { id: "ok", label: "✅" }
-`
-	cfg, err := Parse([]byte(yaml))
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	slot := cfg.Groups[0].Tiles[0].Slots[0]
-	if slot.DefaultStatus == nil {
-		t.Fatal("default_status is nil")
-	}
-	if slot.DefaultStatus.ID != "err" {
-		t.Errorf("default_status.id = %q, want %q", slot.DefaultStatus.ID, "err")
-	}
-}
-
 func TestParse_ValidationErrors(t *testing.T) {
 	tests := []struct {
 		name    string
