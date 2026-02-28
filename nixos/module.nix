@@ -76,6 +76,14 @@ in
       description = "Enable verbose logging.";
     };
 
+    extraPackages = lib.mkOption {
+      type = lib.types.listOf lib.types.package;
+      default = [ ];
+      example = lib.literalExpression "[ pkgs.openssl pkgs.jq ]";
+      description = ''Additional packages to add to the PATH available to check commands.''
+      ;
+    };
+
     nginx = {
       enable = lib.mkEnableOption "nginx virtual host for ilias";
 
@@ -141,7 +149,7 @@ in
         Group = cfg.group;
         # Give commands in checks access to the full NixOS system PATH.
         # Systemd's default PATH only covers /usr/bin:/bin which is empty on NixOS.
-        Environment = "PATH=/run/current-system/sw/bin:/run/wrappers/bin";
+        Environment = "PATH=${lib.makeBinPath cfg.extraPackages}:/run/current-system/sw/bin:/run/wrappers/bin";
         ExecStart = lib.concatStringsSep " " ([
           "${cfg.package}/bin/ilias"
           "generate"
