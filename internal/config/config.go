@@ -12,9 +12,10 @@ import (
 
 // Config is the top-level configuration for the dashboard.
 type Config struct {
-	Title  string  `yaml:"title"`
-	Theme  string  `yaml:"theme"`
-	Groups []Group `yaml:"groups"`
+	Title   string   `yaml:"title"`
+	Theme   string   `yaml:"theme"`
+	Refresh Duration `yaml:"refresh,omitempty"`
+	Groups  []Group  `yaml:"groups"`
 }
 
 // Group is a named collection of tiles.

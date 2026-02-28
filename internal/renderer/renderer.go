@@ -25,11 +25,12 @@ var embeddedCSS string
 
 // templateData is the data structure passed to the HTML template.
 type templateData struct {
-	Title       string
-	Theme       string
-	CSS         template.CSS
-	GeneratedAt string
-	Groups      []groupData
+	Title          string
+	Theme          string
+	CSS            template.CSS
+	GeneratedAt    string
+	RefreshSeconds int
+	Groups         []groupData
 }
 
 type groupData struct {
@@ -77,11 +78,12 @@ func Render(result *runner.DashboardResult, configDir string) ([]byte, error) {
 	}
 
 	data := templateData{
-		Title:       result.Title,
-		Theme:       result.Theme,
-		CSS:         template.CSS(css),
-		GeneratedAt: time.Now().Format("2006-01-02 15:04:05"),
-		Groups:      make([]groupData, len(result.Groups)),
+		Title:          result.Title,
+		Theme:          result.Theme,
+		CSS:            template.CSS(css),
+		GeneratedAt:    time.Now().Format("2006-01-02 15:04:05"),
+		RefreshSeconds: result.RefreshSeconds,
+		Groups:         make([]groupData, len(result.Groups)),
 	}
 
 	for gi, g := range result.Groups {

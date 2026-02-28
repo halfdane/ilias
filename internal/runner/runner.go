@@ -37,9 +37,10 @@ type GroupResult struct {
 
 // DashboardResult holds the full evaluated dashboard state.
 type DashboardResult struct {
-	Title  string
-	Theme  string
-	Groups []GroupResult
+	Title          string
+	Theme          string
+	RefreshSeconds int // 0 means no auto-refresh
+	Groups         []GroupResult
 }
 
 // Options configures the runner behavior.
@@ -70,9 +71,10 @@ func Run(ctx context.Context, cfg *config.Config, opts Options) (*DashboardResul
 	sem := make(chan struct{}, concurrency)
 
 	result := &DashboardResult{
-		Title:  cfg.Title,
-		Theme:  cfg.Theme,
-		Groups: make([]GroupResult, len(cfg.Groups)),
+		Title:          cfg.Title,
+		Theme:          cfg.Theme,
+		RefreshSeconds: int(cfg.Refresh.Seconds()),
+		Groups:         make([]GroupResult, len(cfg.Groups)),
 	}
 
 	var wg sync.WaitGroup

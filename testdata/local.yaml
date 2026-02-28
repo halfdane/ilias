@@ -1,5 +1,6 @@
 title: "Local Test Dashboard"
 theme: "dark"
+refresh: "5m"
 
 groups:
   - name: "System"
