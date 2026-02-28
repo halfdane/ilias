@@ -15,9 +15,35 @@ in
       description = "The ilias package to use.";
     };
 
+    configDir = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = ''
+        Directory containing the ilias config file and any local icon assets.
+        The config file must be named <literal>config.yaml</literal> inside
+        this directory. Icon paths in the config are resolved relative to it.
+
+        When set to a path literal in your NixOS configuration, Nix copies the
+        entire directory to the store, making all assets available at
+        generation time. Example layout:
+
+          ./ilias/
+          ├── assets/
+          │   └── logo.png
+          └── config.yaml
+
+        Takes precedence over <option>configFile</option> when set.
+      '';
+    };
+
     configFile = lib.mkOption {
-      type = lib.types.path;
-      description = "Path to the ilias YAML configuration file.";
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = ''
+        Path to the ilias YAML configuration file. Use
+        <option>configDir</option> instead when you have local icon assets
+        alongside the config.
+      '';
     };
 
     outputPath = lib.mkOption {
@@ -62,6 +88,21 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.configDir != null || cfg.configFile != null;
+        message = "services.ilias: either configDir or configFile must be set.";
+      }
+      {
+        assertion = cfg.configDir == null || builtins.pathExists "${cfg.configDir}/config.yaml";
+        message = "services.ilias: configDir is set but ${toString cfg.configDir}/config.yaml does not exist.";
+      }
+      {
+        assertion = cfg.configFile == null || builtins.pathExists cfg.configFile;
+        message = "services.ilias: configFile ${toString cfg.configFile} does not exist.";
+      }
+    ];
+
     users.users.${cfg.user} = lib.mkIf (cfg.user == "ilias") {
       isSystemUser = true;
       group = cfg.group;
@@ -85,7 +126,9 @@ in
         ExecStart = lib.concatStringsSep " " ([
           "${cfg.package}/bin/ilias"
           "generate"
-          "-c" (toString cfg.configFile)
+          "-c" (if cfg.configDir != null
+                then "${cfg.configDir}/config.yaml"
+                else (toString cfg.configFile))
           "-o" cfg.outputPath
         ] ++ lib.optional cfg.verbose "-v");
 

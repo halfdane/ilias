@@ -13,6 +13,9 @@ import (
 	"github.com/halfdane/ilias/internal/runner"
 )
 
+// version is set at build time via -ldflags "-X main.version=vX.Y.Z".
+var version = "dev"
+
 const usage = `ilias - static dashboard homepage generator
 
 Usage:
@@ -21,6 +24,7 @@ Usage:
 Commands:
   generate    Run checks and generate the static HTML dashboard
   validate    Parse and validate the configuration file
+  version     Print the version and exit
 
 Flags (for generate):
   -c, --config        Path to config file (default: ./ilias.yaml)
@@ -47,6 +51,9 @@ func main() {
 			fmt.Fprintf(os.Stderr, "error: %v\n", err)
 			os.Exit(1)
 		}
+	case "version", "--version", "-version":
+		fmt.Printf("ilias %s\n", version)
+		os.Exit(0)
 	case "-h", "--help", "help":
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(0)
