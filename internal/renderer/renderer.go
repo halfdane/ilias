@@ -30,6 +30,7 @@ type templateData struct {
 	CSS            template.CSS
 	GeneratedAt    string
 	RefreshSeconds int
+	Version        string
 	Groups         []groupData
 }
 
@@ -53,7 +54,8 @@ type slotData struct {
 
 // Render generates the HTML dashboard from the dashboard result.
 // The configDir is used to resolve relative file paths in tile display fields.
-func Render(result *runner.DashboardResult, configDir string) ([]byte, error) {
+// The version string is embedded in the page footer.
+func Render(result *runner.DashboardResult, configDir, version string) ([]byte, error) {
 	css, err := loadCSS()
 	if err != nil {
 		return nil, fmt.Errorf("loading CSS: %w", err)
@@ -84,6 +86,7 @@ func Render(result *runner.DashboardResult, configDir string) ([]byte, error) {
 		CSS:            template.CSS(css),
 		GeneratedAt:    time.Now().Format("2006-01-02 15:04:05"),
 		RefreshSeconds: result.RefreshSeconds,
+		Version:        version,
 		Groups:         make([]groupData, len(result.Groups)),
 	}
 

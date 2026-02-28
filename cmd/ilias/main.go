@@ -119,7 +119,7 @@ func runGenerate(args []string) error {
 
 	// Render HTML
 	configDir := filepath.Dir(opts.ConfigPath)
-	html, err := renderer.Render(result, configDir)
+	html, err := renderer.Render(result, configDir, version)
 	if err != nil {
 		return fmt.Errorf("rendering: %w", err)
 	}

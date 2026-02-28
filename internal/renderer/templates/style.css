@@ -176,6 +176,23 @@ a.tile {
   font-size: 0.65rem;
 }
 
+.dashboard-footer {
+  text-align: center;
+  margin-top: 2rem;
+  padding: 1rem;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.dashboard-footer a {
+  color: var(--text-dim);
+  text-decoration: none;
+}
+
+.dashboard-footer a:hover {
+  color: var(--accent);
+}
+
 @media (max-width: 600px) {
   body {
     padding: 1rem;
