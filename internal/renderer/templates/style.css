@@ -34,7 +34,7 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
-  padding: 2rem;
+  padding: 3rem 8rem;
 }
 
 .dashboard-header {
@@ -62,7 +62,7 @@ body {
 .group-header {
   color: var(--text-dim);
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 0.8rem;
@@ -71,19 +71,27 @@ body {
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  column-gap: 1rem;
+  row-gap: 1.5rem;
 }
 
 .tile {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 1.2rem;
-  display: flex;
-  flex-direction: column;
+  padding-top: 0.8rem;
+  padding-right: 1rem;
+  padding-bottom: 0.8rem;
+  padding-left: 1.2rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "icon name"
+    "icon slots";
   align-items: center;
-  text-align: center;
+  gap: 0.75rem 1rem;
+  text-align: left;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   text-decoration: none;
   color: inherit;
@@ -99,47 +107,19 @@ a.tile {
   cursor: pointer;
 }
 
-.tile--wide {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  grid-template-areas:
-    "icon name"
-    "slots slots";
-  align-items: center;
-  text-align: left;
-  gap: 0 0.8rem;
-}
-
-.tile--wide .tile-icon,
-.tile--wide .tile-icon-placeholder {
-  grid-area: icon;
-  margin-bottom: 0;
-}
-
-.tile--wide .tile-name {
-  grid-area: name;
-  margin-bottom: 0;
-}
-
-.tile--wide .tile-slots {
-  grid-area: slots;
-  justify-content: flex-start;
-  margin-top: 0.6rem;
-}
-
 .tile-icon {
+  grid-area: icon;
   width: 48px;
   height: 48px;
-  margin-bottom: 0.8rem;
   border-radius: 8px;
   object-fit: contain;
+  align-self: center;
 }
 
 .tile-icon-placeholder {
+  grid-area: icon;
   width: 48px;
   height: 48px;
-  margin-bottom: 0.8rem;
   border-radius: 8px;
   background: var(--border);
   display: flex;
@@ -147,20 +127,24 @@ a.tile {
   justify-content: center;
   font-size: 1.4rem;
   color: var(--text-dim);
+  align-self: center;
 }
 
 .tile-name {
-  font-size: 0.95rem;
-  font-weight: 500;
+  grid-area: name;
+  font-size: 1.2em;
+  font-weight: bold;
   color: var(--text-bright);
-  margin-bottom: 0.6rem;
+  align-self: end;
 }
 
 .tile-slots {
+  grid-area: slots;
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  justify-content: center;
+  justify-content: flex-end;
+  align-self: start;
 }
 
 .slot {
@@ -228,11 +212,14 @@ a.tile {
   }
 
   .tiles {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 0.75rem;
   }
 
   .tile {
-    padding: 1rem;
+    padding-top: 0.4rem;
+    padding-right: 0.8rem;
+    padding-bottom: 0.4rem;
+    padding-left: 0.8rem;
   }
 }

@@ -17,7 +17,7 @@
     <div class="group-header">{{.Name}}</div>
     <div class="tiles">
       {{range .Tiles}}
-      {{if .Link}}<a class="tile{{if .Wide}} tile--wide{{end}}" href="{{.Link}}" target="_blank" rel="noopener">{{else}}<div class="tile{{if .Wide}} tile--wide{{end}}">{{end}}
+      {{if .Link}}<a class="tile" href="{{.Link}}" target="_blank" rel="noopener">{{else}}<div class="tile">{{end}}
         {{if .IconData}}
         <img class="tile-icon" src="{{.IconData}}" alt="{{.Name}}">
         {{else}}
