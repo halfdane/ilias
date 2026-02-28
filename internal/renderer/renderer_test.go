@@ -29,7 +29,7 @@ func TestRender_BasicOutput(t *testing.T) {
 		},
 	}
 
-	html, err := Render(result, "/tmp")
+	html, err := Render(result, "/tmp", "test")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -62,7 +62,7 @@ func TestRender_LightTheme(t *testing.T) {
 		Groups: []runner.GroupResult{{Name: "G", Tiles: []runner.TileResult{{Name: "T", Display: ""}}}},
 	}
 
-	html, err := Render(result, "/tmp")
+	html, err := Render(result, "/tmp", "test")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -86,7 +86,7 @@ func TestRender_TileWithoutLink(t *testing.T) {
 		},
 	}
 
-	html, err := Render(result, "/tmp")
+	html, err := Render(result, "/tmp", "test")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -112,7 +112,7 @@ func TestRender_TileWithLink(t *testing.T) {
 		},
 	}
 
-	html, err := Render(result, "/tmp")
+	html, err := Render(result, "/tmp", "test")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -147,7 +147,7 @@ func TestRender_MultipleSlots(t *testing.T) {
 		},
 	}
 
-	html, err := Render(result, "/tmp")
+	html, err := Render(result, "/tmp", "test")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -168,7 +168,7 @@ func TestRender_CSSEmbedded(t *testing.T) {
 		Groups: []runner.GroupResult{{Name: "G", Tiles: []runner.TileResult{{Name: "T", Display: ""}}}},
 	}
 
-	html, err := Render(result, "/tmp")
+	html, err := Render(result, "/tmp", "test")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
