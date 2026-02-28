@@ -139,6 +139,9 @@ in
         Type = "oneshot";
         User = cfg.user;
         Group = cfg.group;
+        # Give commands in checks access to the full NixOS system PATH.
+        # Systemd's default PATH only covers /usr/bin:/bin which is empty on NixOS.
+        Environment = "PATH=/run/current-system/sw/bin:/run/wrappers/bin";
         ExecStart = lib.concatStringsSep " " ([
           "${cfg.package}/bin/ilias"
           "generate"
