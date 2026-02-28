@@ -1,0 +1,49 @@
+title: "Local Test Dashboard"
+theme: "dark"
+
+groups:
+  - name: "System"
+    tiles:
+      - name: "Hostname"
+        display: "icon.png"
+        slots:
+          - name: "status"
+            check:
+              type: "command"
+              target: "hostname"
+            rules:
+              - match:
+                  code: 0
+                status: { id: "ok", label: "✅" }
+              - match: {}
+                status: { id: "error", label: "❌" }
+
+      - name: "Date"
+        display: "icon.png"
+        link: "https://time.is"
+        slots:
+          - name: "current"
+            check:
+              type: "command"
+              target: "date +%H:%M"
+            rules:
+              - match:
+                  code: 0
+                status: { id: "ok", label: "🕐" }
+
+      - name: "Disk"
+        display: "icon.png"
+        slots:
+          - name: "usage"
+            check:
+              type: "command"
+              target: "df -h / | tail -1 | awk '{print $5}'"
+            rules:
+              - match:
+                  output: "^[0-6]\\d%"
+                status: { id: "ok", label: "✅" }
+              - match:
+                  output: "^[7-8]\\d%"
+                status: { id: "warn", label: "⚠️" }
+              - match: {}
+                status: { id: "critical", label: "🔴" }

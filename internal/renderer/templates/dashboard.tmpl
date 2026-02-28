@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{.Theme}}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.Title}}</title>
+  <style>{{.CSS}}</style>
+</head>
+<body>
+  <div class="dashboard-header">
+    <h1>{{.Title}}</h1>
+    <div class="generated">Generated {{.GeneratedAt}}</div>
+  </div>
+  {{range .Groups}}
+  <div class="group">
+    <div class="group-header">{{.Name}}</div>
+    <div class="tiles">
+      {{range .Tiles}}
+      {{if .Link}}<a class="tile" href="{{.Link}}" target="_blank" rel="noopener">{{else}}<div class="tile">{{end}}
+        {{if .IconData}}
+        <img class="tile-icon" src="{{.IconData}}" alt="{{.Name}}">
+        {{else}}
+        <div class="tile-icon-placeholder">{{firstChar .Name}}</div>
+        {{end}}
+        <div class="tile-name">{{.Name}}</div>
+        {{if .Slots}}
+        <div class="tile-slots">
+          {{range .Slots}}
+          <div class="slot">
+            <span class="slot-label">{{.Label}}</span>
+            <span class="slot-name">{{.Name}}</span>
+          </div>
+          {{end}}
+        </div>
+        {{end}}
+      {{if .Link}}</a>{{else}}</div>{{end}}
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+</body>
+</html>
