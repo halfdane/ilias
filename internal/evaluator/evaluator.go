@@ -30,9 +30,17 @@ func Evaluate(result checker.Result, rules []config.Rule) config.Status {
 // matchesRule checks whether a result satisfies a match condition.
 // An empty match (no code, no output) is a catch-all that always matches.
 func matchesRule(result checker.Result, match config.Match) bool {
-	// If the check itself failed (Err != nil), only match catch-all rules
+	// If the check errored, code matching is meaningless (no status code).
+	// Output matching is still allowed so rules can match on the error message.
 	if result.Err != nil {
-		return match.Code == nil && match.Output == ""
+		if match.Code != nil {
+			return false
+		}
+		if match.Output != "" {
+			return matchOutput(result.Output, match.Output)
+		}
+		// match: {} — catch-all
+		return true
 	}
 
 	hasCondition := false

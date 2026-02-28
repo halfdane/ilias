@@ -30,7 +30,7 @@ Or drop a file named `config.yaml` in the current directory and run `ilias gener
 
 ## Configuration
 
-Save as `config.yaml` and run `ilias generate`. The example below should work out of the box on most Linux machines and demonstrates every feature.
+Save as `config.yaml` and run `ilias generate`. The example below works out of the box on most Linux machines and demonstrates every feature.
 
 ```yaml
 title: My Computer
@@ -47,7 +47,7 @@ groups:
           - name: uptime
             check:
               type: command         # "command" or "http"
-              target: uptime -p     # shell command; stdout+stderr available in rules
+              target: uptime        # shell command; stdout+stderr available in rules
             rules:
               - match:
                   code: 0           # exact integer exit code
@@ -84,23 +84,6 @@ groups:
               - match: {}
                 status: { id: error, label: "❌" }
 
-      - name: CPU temp
-        slots:
-          - name: temp
-            check:
-              type: command
-              target: "sensors | awk '/^Package id 0:/ {print $4}'"  # lm-sensors
-              timeout: 5s          # per-check timeout; default: none
-            rules:
-              - match:
-                  output: "^\\+[0-3]\\d"
-                status: { id: ok, label: "✅ <40°C" }
-              - match:
-                  output: "^\\+[4-6]\\d"
-                status: { id: warn, label: "⚠️ warm" }
-              - match: {}
-                status: { id: hot, label: "🔴 hot!" }
-
   - name: Network
     tiles:
       - name: Gateway
@@ -108,8 +91,7 @@ groups:
           - name: ping
             check:
               type: command
-              # ip and ping are standard on any Linux system
-              target: "ping -c 1 -W 1 $(ip route show default | awk '/default/ {print $3; exit}')"
+              target: "ping -c 1 -W 1 google.com"
             rules:
               - match:
                   code: 0
@@ -133,41 +115,44 @@ groups:
               - match:
                   code: "5\\d\\d"         # regex on status code
                 status: { id: error, label: "🔴 5xx" }
+              - match:
+                  output: "certificate|x509|tls"  # TLS/cert errors (no code — match on error message)
+                status: { id: cert-error, label: "🔒 cert error" }
               - match: {}
                 status: { id: down, label: "🔴" }
 
   - name: Metrics
     tiles:
-      # generate runs a shell command before rendering — here it produces a PNG.
+      # generate runs a shell command before rendering.
       # banner embeds a full-width image in the tile.
-      # Requires prometheus-render (https://github.com/halfdane/prometheus-render)
-      # and a local Prometheus instance.
-      - name: CPU Usage
+      - name: Some generated image
         banner:
-          src: /tmp/ilias_cpu.png
-          type: image             # currently the only type; may be omitted
+          src: /tmp/generated_image1.svg
         generate:
+          # Pure-shell SVG: shows a gradient bar — no extra tools needed.
           command: >-
-            prometheus-render
-            --query 'sum(rate(node_cpu_seconds_total{mode!="idle"}[5m])) * 100'
-            --range 1h --title 'CPU %' --output /tmp/ilias_cpu.png
-          timeout: 30s            # generate timeout; default: 60s
+            printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 32"><defs><linearGradient id="g"
+            x1="0" y1="0" x2="1" y2="0"><stop offset="0%%" stop-color="#2ecc71"/><stop offset="60%%"
+            stop-color="#f1c40f"/><stop offset="100%%" stop-color="#e74c3c"/></linearGradient></defs><rect
+            width="400" height="32" rx="6" fill="url(#g)"/></svg>' > /tmp/generated_image1.svg
+          timeout: 5s
 
       # generate + banner + slots can all be combined on one tile
-      - name: Disk I/O
+      - name: Another generated image
         banner:
-          src: /tmp/ilias_diskio.png
+          src: /tmp/generated_image2.svg
         generate:
           command: >-
-            prometheus-render
-            --query 'rate(node_disk_read_bytes_total[5m]) + rate(node_disk_written_bytes_total[5m])'
-            --range 1h --title 'Disk I/O (bytes/s)' --output /tmp/ilias_diskio.png
-          timeout: 30s
+            printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 32"><defs><linearGradient id="g"
+            x1="0" y1="0" x2="1" y2="0"><stop offset="0%%" stop-color="#3498db"/><stop offset="100%%"
+            stop-color="#9b59b6"/></linearGradient></defs><rect width="400" height="32" rx="6"
+            fill="url(#g)"/></svg>' > /tmp/generated_image2.svg
+          timeout: 5s
         slots:
-          - name: writes
+          - name: io
             check:
               type: command
-              target: "iostat -d sda 1 1 | awk '/^sda/ {print $4 \" kB/s\"}'  # sysstat"
+              target: "vmstat 1 2 | tail -1 | awk '{print \"bi=\" $9 \" bo=\" $10 \" kB/s\"}'"
             rules:
               - match:
                   code: 0

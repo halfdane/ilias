@@ -64,7 +64,7 @@ func (c *HTTPChecker) Check(ctx context.Context) Result {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return Result{Err: fmt.Errorf("performing request: %w", err)}
+		return Result{Output: err.Error(), Err: fmt.Errorf("performing request: %w", err)}
 	}
 	defer resp.Body.Close()
 
@@ -88,7 +88,7 @@ func (c *CommandChecker) Check(ctx context.Context) Result {
 	ctx, cancel := context.WithTimeout(ctx, c.Timeout)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "sh", "-c", c.Command)
+	cmd := exec.CommandContext(ctx, "bash", "-c", "set -o pipefail; "+c.Command)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout

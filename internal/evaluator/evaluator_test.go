@@ -178,8 +178,7 @@ func TestEvaluate_CheckError_NoMatch(t *testing.T) {
 }
 
 func TestEvaluate_CheckError_NonCatchAllDoesNotMatch(t *testing.T) {
-	// When check has error, only catch-all rules should match.
-	// Specific code/output rules should NOT match.
+	// When check has error, code rules must NOT match (no status code available).
 	rules := []config.Rule{
 		{
 			Match:  config.Match{Code: &config.MatchValue{Exact: intPtr(0)}},
@@ -189,8 +188,30 @@ func TestEvaluate_CheckError_NonCatchAllDoesNotMatch(t *testing.T) {
 
 	result := checker.Result{Code: 0, Err: errors.New("some error")}
 	status := Evaluate(result, rules)
-	// Should NOT match the code=0 rule because there's an error
 	if status.ID != BuiltinErrorStatus.ID {
-		t.Errorf("status = %q, want %q (non-catch-all should not match on error)", status.ID, BuiltinErrorStatus.ID)
+		t.Errorf("status = %q, want %q (code rule must not match on error)", status.ID, BuiltinErrorStatus.ID)
+	}
+}
+
+func TestEvaluate_CheckError_OutputRuleMatches(t *testing.T) {
+	// When check has error, output rules CAN match (e.g. TLS cert errors).
+	rules := []config.Rule{
+		{
+			Match:  config.Match{Output: "certificate|x509"},
+			Status: config.Status{ID: "cert-error", Label: "🔒"},
+		},
+		{
+			Match:  config.Match{},
+			Status: config.Status{ID: "down", Label: "🔴"},
+		},
+	}
+
+	result := checker.Result{
+		Output: "tls: failed to verify certificate: x509: certificate signed by unknown authority",
+		Err:    errors.New("performing request: tls: failed to verify certificate"),
+	}
+	status := Evaluate(result, rules)
+	if status.ID != "cert-error" {
+		t.Errorf("status = %q, want %q (output rule should match on TLS error)", status.ID, "cert-error")
 	}
 }
