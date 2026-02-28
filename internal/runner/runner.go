@@ -7,6 +7,7 @@ import (
 	"io"
 	"os/exec"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -160,8 +161,11 @@ func runGenerate(ctx context.Context, gen *config.Generate, logger io.Writer, ti
 
 	cmd := exec.CommandContext(ctx, "sh", "-c", gen.Command)
 	output, err := cmd.CombinedOutput()
+	if len(output) > 0 {
+		fmt.Fprintf(logger, "  [generate-out] %s: %s\n", tileName, strings.TrimRight(string(output), "\n"))
+	}
 	if err != nil {
-		return fmt.Errorf("command %q: %w (output: %s)", gen.Command, err, string(output))
+		return fmt.Errorf("command %q: %w", gen.Command, err)
 	}
 	return nil
 }

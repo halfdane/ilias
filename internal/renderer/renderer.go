@@ -105,6 +105,7 @@ func Render(result *runner.DashboardResult, configDir, version string) ([]byte, 
 			iconURI, err := resolveIcon(t.Display, configDir)
 			if err != nil {
 				// Not fatal; just skip the icon
+				fmt.Fprintf(os.Stderr, "[warn] resolving icon for %q: %v\n", t.Name, err)
 				td.IconData = ""
 			} else {
 				td.IconData = template.URL(iconURI)
