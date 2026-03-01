@@ -54,12 +54,27 @@ type slotData struct {
 	Output string // raw check output, shown as tooltip
 }
 
+// Options configures HTML generation behaviour.
+type Options struct {
+	// NoTooltips suppresses check output from data-tooltip attributes.
+	// Use when the dashboard is publicly accessible to avoid leaking
+	// internal service details via hover tooltips.
+	NoTooltips bool
+	// NoTimestamp omits the "Generated <time>" line from the dashboard header.
+	// Use when the dashboard is publicly accessible to avoid revealing
+	// the monitoring cadence or server clock.
+	NoTimestamp bool
+	// GeneratedAt overrides the timestamp shown in the header.
+	// The zero value uses time.Now().
+	GeneratedAt time.Time
+}
+
 // Render generates the HTML dashboard from the dashboard result.
 // The configDir is used to resolve relative file paths in tile icon/banner fields.
 // The version string is embedded in the page footer.
-// An optional generatedAt time overrides the default (time.Now()) for the
-// "Generated at" timestamp, which is useful for deterministic test output.
-func Render(result *runner.DashboardResult, configDir, version string, generatedAt ...time.Time) ([]byte, error) {
+// An optional Options value controls tooltip suppression and the generated-at
+// timestamp (useful for deterministic test output).
+func Render(result *runner.DashboardResult, configDir, version string, opts ...Options) ([]byte, error) {
 	css, err := loadCSS()
 	if err != nil {
 		return nil, fmt.Errorf("loading CSS: %w", err)
@@ -84,16 +99,25 @@ func Render(result *runner.DashboardResult, configDir, version string, generated
 		return nil, fmt.Errorf("parsing template: %w", err)
 	}
 
-	ts := time.Now()
-	if len(generatedAt) > 0 {
-		ts = generatedAt[0]
+	var o Options
+	if len(opts) > 0 {
+		o = opts[0]
+	}
+	ts := o.GeneratedAt
+	if ts.IsZero() {
+		ts = time.Now()
+	}
+
+	generatedAt := ""
+	if !o.NoTimestamp {
+		generatedAt = ts.Format("2006-01-02 15:04:05")
 	}
 
 	data := templateData{
 		Title:          result.Title,
 		Theme:          result.Theme,
 		CSS:            template.CSS(css),
-		GeneratedAt:    ts.Format("2006-01-02 15:04:05"),
+		GeneratedAt:    generatedAt,
 		RefreshSeconds: result.RefreshSeconds,
 		Version:        version,
 		Groups:         make([]groupData, len(result.Groups)),
@@ -135,10 +159,14 @@ func Render(result *runner.DashboardResult, configDir, version string, generated
 
 			td.Slots = make([]slotData, len(t.Slots))
 			for si, s := range t.Slots {
+				tooltipOutput := ""
+				if !o.NoTooltips {
+					tooltipOutput = strings.TrimSpace(s.Output)
+				}
 				td.Slots[si] = slotData{
 					Name:   s.Name,
 					Label:  s.Status.Label,
-					Output: strings.TrimSpace(s.Output),
+					Output: tooltipOutput,
 				}
 			}
 			gd.Tiles[ti] = td

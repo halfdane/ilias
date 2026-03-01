@@ -57,7 +57,7 @@ func TestTestdata_GenerateAndValidate(t *testing.T) {
 				t.Fatalf("running checks: %v", err)
 			}
 
-			html, err := renderer.Render(result, testdataDir, "test", fixedTime)
+			html, err := renderer.Render(result, testdataDir, "test", renderer.Options{GeneratedAt: fixedTime})
 			if err != nil {
 				t.Fatalf("rendering: %v", err)
 			}
@@ -87,5 +87,124 @@ func TestTestdata_GenerateAndValidate(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestNoTooltips verifies that --no-tooltips strips all data-tooltip attributes
+// and check output from the generated HTML.
+func TestNoTooltips(t *testing.T) {
+	testdataDir := filepath.Join("..", "..", "testdata")
+	cfg, err := config.Load(filepath.Join(testdataDir, "basic.yaml"))
+	if err != nil {
+		t.Fatalf("loading config: %v", err)
+	}
+
+	result, err := runner.Run(context.Background(), cfg, runner.Options{Logger: io.Discard})
+	if err != nil {
+		t.Fatalf("running checks: %v", err)
+	}
+
+	// Sanity check: default render has tooltips.
+	withTooltips, err := renderer.Render(result, testdataDir, "test", renderer.Options{GeneratedAt: fixedTime})
+	if err != nil {
+		t.Fatalf("rendering with tooltips: %v", err)
+	}
+	if !strings.Contains(string(withTooltips), `data-tooltip="`) {
+		t.Fatal("expected data-tooltip in default render (sanity check failed)")
+	}
+
+	// With --no-tooltips: no data-tooltip attribute and no raw output values.
+	html, err := renderer.Render(result, testdataDir, "test", renderer.Options{
+		GeneratedAt: fixedTime,
+		NoTooltips:  true,
+	})
+	if err != nil {
+		t.Fatalf("rendering without tooltips: %v", err)
+	}
+	output := string(html)
+
+	if strings.Contains(output, `data-tooltip="`) {
+		t.Error("HTML must not contain data-tooltip attributes when NoTooltips is set")
+	}
+	// basic.yaml runs "echo ok"; its stdout should not appear anywhere in the HTML.
+	if strings.Contains(output, ">ok<") || strings.Contains(output, `"ok"`) {
+		t.Error("HTML must not contain raw command output when NoTooltips is set")
+	}
+}
+
+// TestNoTimestamp verifies that --no-timestamp omits the "Generated at" line
+// from the generated HTML.
+func TestNoTimestamp(t *testing.T) {
+	testdataDir := filepath.Join("..", "..", "testdata")
+	cfg, err := config.Load(filepath.Join(testdataDir, "basic.yaml"))
+	if err != nil {
+		t.Fatalf("loading config: %v", err)
+	}
+
+	result, err := runner.Run(context.Background(), cfg, runner.Options{Logger: io.Discard})
+	if err != nil {
+		t.Fatalf("running checks: %v", err)
+	}
+
+	formattedTime := fixedTime.Format("2006-01-02 15:04:05")
+
+	// Sanity check: default render has the timestamp.
+	withTS, err := renderer.Render(result, testdataDir, "test", renderer.Options{GeneratedAt: fixedTime})
+	if err != nil {
+		t.Fatalf("rendering with timestamp: %v", err)
+	}
+	if !strings.Contains(string(withTS), formattedTime) {
+		t.Fatal("expected timestamp in default render (sanity check failed)")
+	}
+
+	// With --no-timestamp: timestamp must be absent.
+	html, err := renderer.Render(result, testdataDir, "test", renderer.Options{
+		GeneratedAt: fixedTime,
+		NoTimestamp: true,
+	})
+	if err != nil {
+		t.Fatalf("rendering without timestamp: %v", err)
+	}
+	if strings.Contains(string(html), formattedTime) {
+		t.Errorf("HTML must not contain timestamp %q when NoTimestamp is set", formattedTime)
+	}
+	if strings.Contains(string(html), `class="generated"`) {
+		t.Error("HTML must not contain the generated-at div when NoTimestamp is set")
+	}
+}
+
+// TestNoTooltipsAndNoTimestamp verifies both flags together suppress their
+// respective information independently.
+func TestNoTooltipsAndNoTimestamp(t *testing.T) {
+	testdataDir := filepath.Join("..", "..", "testdata")
+	cfg, err := config.Load(filepath.Join(testdataDir, "basic.yaml"))
+	if err != nil {
+		t.Fatalf("loading config: %v", err)
+	}
+
+	result, err := runner.Run(context.Background(), cfg, runner.Options{Logger: io.Discard})
+	if err != nil {
+		t.Fatalf("running checks: %v", err)
+	}
+
+	html, err := renderer.Render(result, testdataDir, "test", renderer.Options{
+		GeneratedAt: fixedTime,
+		NoTooltips:  true,
+		NoTimestamp: true,
+	})
+	if err != nil {
+		t.Fatalf("rendering: %v", err)
+	}
+	output := string(html)
+
+	if strings.Contains(output, `data-tooltip="`) {
+		t.Error("HTML must not contain data-tooltip attributes")
+	}
+	if strings.Contains(output, fixedTime.Format("2006-01-02 15:04:05")) {
+		t.Error("HTML must not contain the timestamp")
+	}
+	// Dashboard structure must still be intact.
+	if !strings.Contains(output, cfg.Title) {
+		t.Errorf("HTML must still contain title %q", cfg.Title)
 	}
 }

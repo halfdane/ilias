@@ -10,7 +10,7 @@
 <body>
   <div class="dashboard-header">
     <h1>{{.Title}}</h1>
-    <div class="generated">Generated {{.GeneratedAt}}</div>
+    {{if .GeneratedAt}}<div class="generated">Generated {{.GeneratedAt}}</div>{{end}}
   </div>
   {{range .Groups}}
   <div class="group">

@@ -366,6 +366,10 @@ ilias <command> [flags]
 | `--dry-run` | false | Print what would be checked without executing anything |
 | `--concurrency` | auto (NumCPU) | Maximum number of parallel checks |
 | `-v`, `--verbose` | false | Log progress and results to stderr |
+| `--no-tooltips` | false | Strip check output from hover tooltips — recommended when the dashboard is publicly accessible |
+| `--no-timestamp` | false | Omit the "Generated at" timestamp — recommended when the dashboard is publicly accessible |
+
+> **Heads-up for public dashboards:** `--no-tooltips` and `--no-timestamp` reduce information leakage, but `link:` values and tile/slot names are always included in the HTML. Review them carefully before making a dashboard public — internal hostnames, IP addresses, and service names in tile/slot labels are visible to anyone who views the page source.
 
 ### `validate` flags
 
@@ -486,6 +490,8 @@ services.ilias = {
 | `user` | string | `ilias` | System user for the service |
 | `group` | string | `ilias` | System group for the service |
 | `verbose` | bool | false | Enable verbose logging in the systemd service |
+| `noTooltips` | bool | false | Strip check output from hover tooltips — recommended for public dashboards |
+| `noTimestamp` | bool | false | Omit the "Generated at" timestamp — recommended for public dashboards |
 | `extraPackages` | list\<package\> | `[]` | Packages added to PATH for check and generate commands |
 | `nginx.enable` | bool | false | Create an nginx virtual host |
 | `nginx.hostName` | string | `dashboard.localhost` | Virtual host name |

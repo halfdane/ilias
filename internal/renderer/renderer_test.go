@@ -499,3 +499,51 @@ func TestRender_TileWithURLIcon(t *testing.T) {
 		t.Error("output should contain base64-encoded remote icon data")
 	}
 }
+
+func TestRender_NoTooltips(t *testing.T) {
+	result := &runner.DashboardResult{
+		Title: "Test",
+		Theme: "dark",
+		Groups: []runner.GroupResult{
+			{
+				Name: "G",
+				Tiles: []runner.TileResult{
+					{
+						Name: "T",
+						Slots: []runner.SlotResult{
+							{
+								Name:   "status",
+								Status: config.Status{ID: "ok", Label: "✅"},
+								Output: "HTTP 200 OK\n\ninternal host: db.corp:5432",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	// Default: tooltips present
+	html, err := Render(result, "/tmp", "test")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(string(html), `data-tooltip="`) {
+		t.Error("expected data-tooltip attribute with default options")
+	}
+	if !strings.Contains(string(html), "db.corp") {
+		t.Error("expected tooltip content in default mode")
+	}
+
+	// NoTooltips: output stripped entirely
+	html, err = Render(result, "/tmp", "test", Options{NoTooltips: true})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if strings.Contains(string(html), `data-tooltip="`) {
+		t.Error("expected no data-tooltip attribute with NoTooltips=true")
+	}
+	if strings.Contains(string(html), "db.corp") {
+		t.Error("expected tooltip content removed with NoTooltips=true")
+	}
+}

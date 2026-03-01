@@ -76,6 +76,28 @@ in
       description = "Enable verbose logging.";
     };
 
+    noTooltips = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Strip check output from hover tooltips in the generated HTML.
+        Recommended when the dashboard is publicly accessible, to avoid
+        leaking internal service details.
+        If you think of doing this, remember that `link` fields in the config can also leak info and should be reviewed carefully.
+        Tile and slot names can also leak info, so be mindful of what you put there as well. 
+      '';
+    };
+
+    noTimestamp = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Omit the "Generated at" timestamp from the dashboard HTML.
+        Recommended when the dashboard is publicly accessible, to avoid
+        revealing the monitoring cadence or server clock.
+      '';
+    };
+
     extraPackages = lib.mkOption {
       type = lib.types.listOf lib.types.package;
       default = [ ];
@@ -158,7 +180,9 @@ in
                 then "${cfg.configDir}/config.yaml"
                 else (toString cfg.configFile))
           "-o" cfg.outputPath
-        ] ++ lib.optional cfg.verbose "-v");
+        ] ++ lib.optional cfg.verbose "-v"
+          ++ lib.optional cfg.noTooltips "--no-tooltips"
+          ++ lib.optional cfg.noTimestamp "--no-timestamp");
 
         # Hardening
         NoNewPrivileges = true;

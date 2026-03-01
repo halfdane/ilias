@@ -32,6 +32,8 @@ Flags (for generate):
   --dry-run           Show what would be checked without executing
   --concurrency       Max parallel checks (default: auto)
   -v, --verbose       Verbose logging to stderr
+  --no-tooltips       Don't include check output in hover tooltips (recommended for public dashboards)
+  --no-timestamp      Omit the "Generated at" timestamp (recommended for public dashboards)
 `
 
 func main() {
@@ -71,6 +73,8 @@ type GenerateOptions struct {
 	DryRun      bool
 	Concurrency int
 	Verbose     bool
+	NoTooltips  bool
+	NoTimestamp bool
 }
 
 func runGenerate(args []string) error {
@@ -85,6 +89,8 @@ func runGenerate(args []string) error {
 	fs.IntVar(&opts.Concurrency, "concurrency", 0, "Max parallel checks (0 = auto)")
 	fs.BoolVar(&opts.Verbose, "v", false, "Verbose logging to stderr")
 	fs.BoolVar(&opts.Verbose, "verbose", false, "Verbose logging to stderr")
+	fs.BoolVar(&opts.NoTooltips, "no-tooltips", false, "Don't include check output in hover tooltips")
+	fs.BoolVar(&opts.NoTimestamp, "no-timestamp", false, "Omit the generated-at timestamp")
 
 	if err := fs.Parse(args); err != nil {
 		return err
@@ -119,7 +125,10 @@ func runGenerate(args []string) error {
 
 	// Render HTML
 	configDir := filepath.Dir(opts.ConfigPath)
-	html, err := renderer.Render(result, configDir, version)
+	html, err := renderer.Render(result, configDir, version, renderer.Options{
+		NoTooltips:  opts.NoTooltips,
+		NoTimestamp: opts.NoTimestamp,
+	})
 	if err != nil {
 		return fmt.Errorf("rendering: %w", err)
 	}
