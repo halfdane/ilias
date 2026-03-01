@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>My Dashboard</title>
+  <style>/* ilias dashboard styles */
+:root {
+  --bg: #1a1b26;
+  --bg-card: #24283b;
+  --bg-group: #1f2335;
+  --text: #c0caf5;
+  --text-dim: #565f89;
+  --text-bright: #ffffff;
+  --accent: #7aa2f7;
+  --border: #3b4261;
+  --shadow: rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="light"] {
+  --bg: #f0f0f3;
+  --bg-card: #ffffff;
+  --bg-group: #e8e8ec;
+  --text: #343b58;
+  --text-dim: #9699a3;
+  --text-bright: #1a1b26;
+  --accent: #2e7de9;
+  --border: #d0d0d8;
+  --shadow: rgba(0, 0, 0, 0.08);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 3rem 8rem;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  color: var(--text-bright);
+  font-size: 1.8rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-header .generated {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+}
+
+.group {
+  margin-bottom: 2rem;
+}
+
+.group-header {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.8rem;
+  padding-left: 0.2rem;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  column-gap: 1rem;
+  row-gap: 1.5rem;
+}
+
+.tile {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding-top: 0.8rem;
+  padding-right: 1rem;
+  padding-bottom: 0.8rem;
+  padding-left: 1.2rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "icon name"
+    "icon slots";
+  align-items: center;
+  gap: 0.75rem 1rem;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+
+.tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--shadow);
+  z-index: 1;
+}
+
+a.tile {
+  cursor: pointer;
+}
+
+.tile-icon {
+  grid-area: icon;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: contain;
+  align-self: center;
+}
+
+.tile-icon-placeholder {
+  grid-area: icon;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: var(--text-dim);
+  align-self: center;
+}
+
+.tile-name {
+  grid-area: name;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: var(--text-bright);
+  align-self: end;
+}
+
+.tile-slots {
+  grid-area: slots;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
+  align-self: start;
+}
+
+.tile-banner {
+  grid-column: 1 / -1;
+}
+
+.tile-banner img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+}
+
+.slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  background: var(--bg);
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  position: relative;
+}
+
+.slot[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 30%;
+  transform: translateX(-30%);
+  background: #0d0e14;
+  color: var(--text);
+  font-size: 0.7rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px var(--shadow);
+  z-index: 100;
+  pointer-events: none;
+  width: max-content;
+  max-width: min(320px, calc(100vw - 2rem));
+}
+
+.slot-label {
+  font-size: 0.85rem;
+}
+
+.slot-name {
+  font-size: 0.65rem;
+}
+
+.dashboard-footer {
+  text-align: center;
+  margin-top: 2rem;
+  padding: 1rem;
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.dashboard-footer a {
+  color: var(--text-dim);
+  text-decoration: none;
+}
+
+.dashboard-footer a:hover {
+  color: var(--accent);
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 1rem;
+  }
+
+  .tiles {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .tile {
+    padding-top: 0.4rem;
+    padding-right: 0.8rem;
+    padding-bottom: 0.4rem;
+    padding-left: 0.8rem;
+  }
+}
+</style>
+</head>
+<body>
+  <div class="dashboard-header">
+    <h1>My Dashboard</h1>
+    <div class="generated">Generated 2025-01-01 00:00:00</div>
+  </div>
+  
+  <div class="group">
+    <div class="group-header">Services</div>
+    <div class="tiles">
+      
+      <div class="tile">
+        
+        <div class="tile-name">Web Server</div>
+        
+        <div class="tile-slots">
+          
+          <div class="slot" data-tooltip="ok">
+            <span class="slot-label">✅</span>
+            <span class="slot-name">status</span>
+          </div>
+          
+        </div>
+        
+        
+      </div>
+      
+    </div>
+  </div>
+  
+  <footer class="dashboard-footer">
+    Generated by <a href="https://github.com/halfdane/ilias" target="_blank" rel="noopener">ilias</a> test
+  </footer>
+</body>
+</html>

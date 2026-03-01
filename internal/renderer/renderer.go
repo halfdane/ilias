@@ -57,7 +57,9 @@ type slotData struct {
 // Render generates the HTML dashboard from the dashboard result.
 // The configDir is used to resolve relative file paths in tile icon/banner fields.
 // The version string is embedded in the page footer.
-func Render(result *runner.DashboardResult, configDir, version string) ([]byte, error) {
+// An optional generatedAt time overrides the default (time.Now()) for the
+// "Generated at" timestamp, which is useful for deterministic test output.
+func Render(result *runner.DashboardResult, configDir, version string, generatedAt ...time.Time) ([]byte, error) {
 	css, err := loadCSS()
 	if err != nil {
 		return nil, fmt.Errorf("loading CSS: %w", err)
@@ -82,11 +84,16 @@ func Render(result *runner.DashboardResult, configDir, version string) ([]byte, 
 		return nil, fmt.Errorf("parsing template: %w", err)
 	}
 
+	ts := time.Now()
+	if len(generatedAt) > 0 {
+		ts = generatedAt[0]
+	}
+
 	data := templateData{
 		Title:          result.Title,
 		Theme:          result.Theme,
 		CSS:            template.CSS(css),
-		GeneratedAt:    time.Now().Format("2006-01-02 15:04:05"),
+		GeneratedAt:    ts.Format("2006-01-02 15:04:05"),
 		RefreshSeconds: result.RefreshSeconds,
 		Version:        version,
 		Groups:         make([]groupData, len(result.Groups)),
