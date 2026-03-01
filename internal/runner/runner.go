@@ -161,7 +161,7 @@ func runGenerate(ctx context.Context, gen *config.Generate, logger io.Writer, ti
 
 	fmt.Fprintf(logger, "  [generate] %s: %s\n", tileName, gen.Command)
 
-	cmd := exec.CommandContext(ctx, "sh", "-c", gen.Command)
+	cmd := exec.CommandContext(ctx, "bash", "-c", "set -o pipefail; "+gen.Command)
 	output, err := cmd.CombinedOutput()
 	if len(output) > 0 {
 		fmt.Fprintf(logger, "  [generate-out] %s: %s\n", tileName, strings.TrimRight(string(output), "\n"))
