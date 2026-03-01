@@ -19,6 +19,10 @@ Inspired by [Homer](https://github.com/bastienwirtz/homer) — where Homer serve
 
 ## Installation
 
+### Requirements
+
+ilias requires **bash** on the system PATH. All command checks and generate blocks are executed via `bash -c` with `set -o pipefail`. bash is pre-installed on most Linux distributions and macOS; on minimal containers (Alpine, scratch) you may need to install it explicitly.
+
 ### Binary (GitHub release)
 
 Download a prebuilt binary from the [Releases](https://github.com/halfdane/ilias/releases) page:
@@ -429,3 +433,27 @@ services.ilias = {
 | `nginx.acmeHost` | string\|null | null | Reuse an existing ACME certificate (`useACMEHost`) |
 
 The service runs as a oneshot systemd unit triggered on boot (after 1 minute) and then on the configured interval. It also runs immediately on every `nixos-rebuild switch`.
+
+## Development
+
+The project uses a Nix flake for the development environment. Enter the dev shell:
+
+```sh
+nix develop        # or: direnv allow (if you use direnv)
+```
+
+Common tasks:
+
+```sh
+go test ./...               # run all tests
+go test -race ./...         # run tests with race detector
+go vet ./...                # static analysis
+staticcheck ./...           # extended static analysis
+go test -cover ./...        # show coverage per package
+```
+
+Before tagging a release, the `bump_and_tag.sh` script runs tests, `go vet`, `staticcheck`, and `embedmd` validation as pre-flight checks.
+
+## License
+
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
