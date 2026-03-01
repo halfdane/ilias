@@ -179,6 +179,39 @@ check:
   target: uptime
 ```
 
+### YAML anchors
+
+Standard YAML anchors (`&name` / `*name`) can eliminate repetition for rule sets that appear in several slots but don't fit as global defaults. ilias ignores unknown top-level keys, so a `_anchors:` block is a convenient place to stash reusable fragments.
+
+Example — a percentage-based threshold that works for disk usage, memory, CPU, or anything else reporting a percentage:
+
+```yaml
+_anchors:
+  pct_rules: &pct_rules
+    - match: { output: "^[0-6]\\d%$|^[0-9]%$" }
+      status: { id: ok, label: "✅ <70%" }
+    - match: { output: "^[7-8]\\d%$" }
+      status: { id: warn, label: "⚠️ 70–89%" }
+    - match: {}
+      status: { id: critical, label: "🔴 ≥90%" }
+
+groups:
+  - name: System
+    tiles:
+      - name: Disk (root)
+        slots:
+          - name: usage
+            check: "df / --output=pcent | tail -1 | tr -d ' '"
+            rules: *pct_rules
+      - name: Disk (/data)
+        slots:
+          - name: usage
+            check: "df /data --output=pcent | tail -1 | tr -d ' '"
+            rules: *pct_rules
+```
+
+Combine with [default rules](#default-rules) and [check shorthand](#check-shorthand) for maximum brevity.
+
 ### Full
 
 Demonstrates every feature. Should work out of the box on most Linux machines.
@@ -197,6 +230,18 @@ defaults:
     - match: {}
       status: { id: error, label: "❌" }
 
+# YAML anchors — reusable fragments ilias doesn't interpret directly
+_anchors:
+  pct_rules: &pct_rules           # works for disk, memory, CPU …
+    - match:
+        output: "^[0-6]\\d%$|^[0-9]%$"
+      status: { id: ok, label: "✅ <70%" }
+    - match:
+        output: "^[7-8]\\d%$"
+      status: { id: warn, label: "⚠️ 70–89%" }
+    - match: {}
+      status: { id: critical, label: "🔴 ≥90%" }
+
 groups:
   - name: System
     tiles:
@@ -212,25 +257,23 @@ groups:
         slots:
           - name: usage
             check: "df / --output=pcent | tail -1 | tr -d ' '"
-            rules:                  # explicit rules override defaults
-              - match:
-                  output: "^[0-6]\\d%$|^[0-9]%$"  # regex on stdout+stderr
-                status: { id: ok, label: "✅ <70%" }
-              - match:
-                  output: "^[7-8]\\d%$"
-                status: { id: warn, label: "⚠️ 70–89%" }
-              - match: {}
-                status: { id: critical, label: "🔴 ≥90%" }
+            rules: *pct_rules       # YAML anchor — see _anchors above
 
-      - name: Memory
-        # a tile can have multiple slots
+      - name: Disk (/home)
         slots:
+          - name: usage
+            check: "df /home --output=pcent | tail -1 | tr -d ' '"
+            rules: *pct_rules
+    
+      - name: Memory
+        slots: # combine anchors and default rules
+          - name: usage
+            check: "free | awk '/^Mem:/ {printf \"%.0f%\", $3/$2 * 100}'"
+            rules: *pct_rules
           - name: available
             check: "free -h | awk '/^Mem:/ {print $7 \" free\"}'"
-            # rules inherited from defaults
           - name: total
             check: "free -h | awk '/^Mem:/ {print $2 \" total\"}'"
-            # rules inherited from defaults
 
   - name: Network
     tiles:
