@@ -7,6 +7,12 @@ cd "$(git rev-parse --show-toplevel)"
 echo "Running tests..."
 go test ./...
 
+echo "Running vet..."
+go vet ./...
+
+echo "Running staticcheck..."
+staticcheck ./...
+
 echo "Checking README is up to date..."
 go test ./cmd/ilias/ # regenerates testdata/*.html
 embedmd -w README.md

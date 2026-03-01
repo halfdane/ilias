@@ -25,10 +25,13 @@ jobs:
           skipPush: ${{ github.event_name == 'pull_request' }}
 
       - name: Run tests
-        run: nix develop .# -c go test ./...
+        run: nix develop .# -c go test -race ./...
 
       - name: Vet
         run: nix develop .# -c go vet ./...
+
+      - name: Staticcheck
+        run: nix develop .# -c staticcheck ./...
 
       - name: Check README is up to date
         run: nix develop .# -c embedmd -d README.md
