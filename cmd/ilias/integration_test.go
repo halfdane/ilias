@@ -18,10 +18,16 @@ import (
 // timestamp does not cause spurious diffs.
 var fixedTime = time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 
-// TestTestdata_GenerateAndValidate regenerates the HTML files in testdata/ from
-// their YAML configs, then validates that key structural elements from the
-// config appear in the generated HTML. This keeps the checked-in HTML in sync
-// and catches regressions in the config→HTML pipeline.
+// deterministic lists configs whose check commands produce stable output.
+// Only these have their HTML written to disk (and tracked in git).
+var deterministic = map[string]bool{
+	"basic": true,
+}
+
+// TestTestdata_GenerateAndValidate runs the full config→HTML pipeline for every
+// YAML in testdata/. For deterministic configs (basic.yaml) it writes the HTML
+// to disk so it can be embedded in the README. For non-deterministic configs
+// (complex.yaml) it validates the HTML structurally without persisting it.
 func TestTestdata_GenerateAndValidate(t *testing.T) {
 	testdataDir := filepath.Join("..", "..", "testdata")
 	entries, err := os.ReadDir(testdataDir)
@@ -35,7 +41,6 @@ func TestTestdata_GenerateAndValidate(t *testing.T) {
 		}
 		base := strings.TrimSuffix(e.Name(), ".yaml")
 		yamlPath := filepath.Join(testdataDir, e.Name())
-		htmlPath := filepath.Join(testdataDir, base+".html")
 
 		t.Run(base, func(t *testing.T) {
 			// Parse config.
@@ -57,9 +62,12 @@ func TestTestdata_GenerateAndValidate(t *testing.T) {
 				t.Fatalf("rendering: %v", err)
 			}
 
-			// Write the generated HTML to testdata/.
-			if err := os.WriteFile(htmlPath, html, 0644); err != nil {
-				t.Fatalf("writing %s: %v", htmlPath, err)
+			// Only write to disk for deterministic configs.
+			if deterministic[base] {
+				htmlPath := filepath.Join(testdataDir, base+".html")
+				if err := os.WriteFile(htmlPath, html, 0644); err != nil {
+					t.Fatalf("writing %s: %v", htmlPath, err)
+				}
 			}
 
 			// Validate structural elements.
