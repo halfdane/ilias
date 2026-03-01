@@ -14,6 +14,10 @@ import (
 
 const defaultTimeout = 30 * time.Second
 
+// maxOutputSize is the maximum amount of stdout/stderr captured from
+// commands. Prevents unbounded memory usage from chatty processes.
+const maxOutputSize = 1 << 20 // 1 MiB
+
 // Result holds the outcome of a check execution.
 type Result struct {
 	Code   int    // HTTP status code or process exit code
@@ -103,9 +107,10 @@ func (c *CommandChecker) Check(ctx context.Context) Result {
 
 	cmd := exec.CommandContext(ctx, "bash", "-c", "set -o pipefail; "+c.Command)
 
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
+	stdout := &limitedBuffer{max: maxOutputSize}
+	stderr := &limitedBuffer{max: maxOutputSize}
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
 
 	err := cmd.Run()
 
@@ -138,4 +143,27 @@ func (c *CommandChecker) Check(ctx context.Context) Result {
 		Code:   exitCode,
 		Output: strings.TrimSpace(out),
 	}
+}
+
+// limitedBuffer is an io.Writer that silently discards writes once the
+// buffer exceeds max bytes. This prevents runaway command output from
+// consuming unbounded memory.
+type limitedBuffer struct {
+	buf bytes.Buffer
+	max int
+}
+
+func (lb *limitedBuffer) Write(p []byte) (int, error) {
+	remaining := lb.max - lb.buf.Len()
+	if remaining <= 0 {
+		return len(p), nil // discard silently
+	}
+	if len(p) > remaining {
+		p = p[:remaining]
+	}
+	return lb.buf.Write(p)
+}
+
+func (lb *limitedBuffer) String() string {
+	return lb.buf.String()
 }
