@@ -329,6 +329,35 @@ ilias validate -c config.yaml
 ilias version
 ```
 
+## Security considerations
+
+ilias executes **arbitrary shell commands** specified in your config file. The `check.target` and `generate.command` fields are passed directly to `bash -c`, which means your config file is effectively a shell script. Treat it accordingly.
+
+### The config file is trusted input
+
+- **Protect file permissions.** The config file should be owned by the same user that runs ilias and should not be world-writable (`chmod 640` or stricter).
+- **Don't accept configs from untrusted sources.** If someone else can write to your config file — via a shared NFS mount, a collaborative git repo, or a web upload — they can run any command on your machine as the ilias user.
+- **Use `ilias validate`** to check a config without executing any commands.
+- **Use `ilias generate --dry-run`** to see what would be executed before running it for real.
+
+### Commands have real consequences
+
+Everything in `check.target` and `generate.command` runs for real. A check like `rm -rf /` will do exactly what you'd expect. ilias does not sandbox, filter, or restrict the commands in any way — they run with the full permissions of the user invoking ilias.
+
+When writing checks, use **read-only, diagnostic commands**: `ping`, `curl`, `df`, `uptime`, `free`, `systemctl status`, etc. Avoid commands that modify state unless you understand the consequences.
+
+### Check output is embedded in the HTML
+
+The raw output of every check is included in the generated HTML file as tooltip text (visible on hover and in the page source). If a check command prints sensitive information — passwords, API tokens, internal paths — that data will be permanently baked into the output file. Make sure your checks don't leak secrets.
+
+### Icon and banner files
+
+Icon and banner paths in the config can reference any file on disk that the ilias user can read. The file contents are base64-encoded and embedded into the HTML. Similarly, icon URLs are fetched at generation time from the machine running ilias.
+
+### NixOS module
+
+When using the NixOS module, the systemd service runs with hardening options (`NoNewPrivileges`, `ProtectSystem=strict`, `ProtectHome`, `PrivateTmp`). However, commands in checks and generate blocks still have **full network access** and can execute any binary available on PATH. The sandboxing limits filesystem writes to the output directory — it does not restrict what check commands can do.
+
 ## NixOS module
 
 ilias ships a NixOS module. Add the flake as an input and import the module:
