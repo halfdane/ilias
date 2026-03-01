@@ -10,12 +10,18 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// Defaults defines fallback values applied to slots that omit their own.
+type Defaults struct {
+	Rules []Rule `yaml:"rules,omitempty"`
+}
+
 // Config is the top-level configuration for the dashboard.
 type Config struct {
-	Title   string   `yaml:"title"`
-	Theme   string   `yaml:"theme"`
-	Refresh Duration `yaml:"refresh,omitempty"`
-	Groups  []Group  `yaml:"groups"`
+	Title    string    `yaml:"title"`
+	Theme    string    `yaml:"theme"`
+	Defaults *Defaults `yaml:"defaults,omitempty"`
+	Refresh  Duration  `yaml:"refresh,omitempty"`
+	Groups   []Group   `yaml:"groups"`
 }
 
 // Group is a named collection of tiles.
@@ -186,6 +192,18 @@ func (c *Config) validate() error {
 		return fmt.Errorf("config: theme must be \"dark\" or \"light\", got %q", c.Theme)
 	}
 
+	// Validate default rules if present.
+	if c.Defaults != nil {
+		for ri, r := range c.Defaults.Rules {
+			if r.Status.ID == "" {
+				return fmt.Errorf("config: defaults, rule[%d]: status.id is required", ri)
+			}
+			if r.Status.Label == "" {
+				return fmt.Errorf("config: defaults, rule[%d]: status.label is required", ri)
+			}
+		}
+	}
+
 	if len(c.Groups) == 0 {
 		return fmt.Errorf("config: at least one group is required")
 	}
@@ -197,8 +215,16 @@ func (c *Config) validate() error {
 		if len(g.Tiles) == 0 {
 			return fmt.Errorf("config: group[%d] %q: at least one tile is required", gi, g.Name)
 		}
-		for ti, t := range g.Tiles {
-			if err := validateTile(gi, g.Name, ti, t); err != nil {
+		for ti := range g.Tiles {
+			// Apply default rules to slots that don't define their own.
+			if c.Defaults != nil && len(c.Defaults.Rules) > 0 {
+				for si := range g.Tiles[ti].Slots {
+					if len(g.Tiles[ti].Slots[si].Rules) == 0 {
+						g.Tiles[ti].Slots[si].Rules = c.Defaults.Rules
+					}
+				}
+			}
+			if err := validateTile(gi, g.Name, ti, g.Tiles[ti]); err != nil {
 				return err
 			}
 		}

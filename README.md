@@ -137,6 +137,21 @@ Generated output (`<body>` of the HTML):
 ```
 
 
+### Default rules
+
+When many slots share the same rules, you can define them once in a top-level `defaults` block. Slots that omit `rules:` inherit the defaults; slots that specify their own rules override the defaults entirely.
+
+```yaml
+defaults:
+  rules:
+    - match: { code: 0 }
+      status: { id: ok, label: "✅" }
+    - match: {}
+      status: { id: error, label: "❌" }
+```
+
+See the [Full](#full) example below for a complete config using default rules.
+
 ### Full
 
 Demonstrates every feature — works out of the box on most Linux machines.
@@ -146,6 +161,14 @@ Demonstrates every feature — works out of the box on most Linux machines.
 title: My TEST Computer
 theme: dark    # "dark" (default) or "light"
 refresh: 1m   # auto-reload interval; omit to disable
+
+defaults:
+  rules:
+    - match:
+        code: 0
+      status: { id: ok, label: "✅" }
+    - match: {}
+      status: { id: error, label: "❌" }
 
 groups:
   - name: System
@@ -158,12 +181,7 @@ groups:
             check:
               type: command         # "command" or "http"
               target: uptime        # shell command; stdout+stderr available in rules
-            rules:
-              - match:
-                  code: 0           # exact integer exit code
-                status: { id: ok, label: "✅" }
-              - match: {}           # catch-all — always place last
-                status: { id: error, label: "❌" }
+            # rules inherited from defaults (code 0 → ✅, catch-all → ❌)
 
       - name: Disk (root)
         slots:
@@ -171,7 +189,7 @@ groups:
             check:
               type: command
               target: "df / --output=pcent | tail -1 | tr -d ' '"
-            rules:
+            rules:                  # explicit rules override defaults
               - match:
                   output: "^[0-6]\\d%$|^[0-9]%$"  # regex on stdout+stderr
                 status: { id: ok, label: "✅ <70%" }
@@ -188,22 +206,13 @@ groups:
             check:
               type: command
               target: "free -h | awk '/^Mem:/ {print $7 \" free\"}'"  # procps
-            rules:
-              - match:
-                  code: 0
-                status: { id: ok, label: "✅" }
-              - match: {}
-                status: { id: error, label: "❌" }
+            # rules inherited from defaults
           - name: total
             check:
               type: command
               target: "free -h | awk '/^Mem:/ {print $2 \" total\"}'"
-            rules:
-              - match:
-                  code: 0
-                status: { id: ok, label: "✅" }
-              - match: {}
-                status: { id: error, label: "❌" }
+            # rules inherited from defaults
+
   - name: Network
     tiles:
       - name: Gateway
@@ -212,12 +221,7 @@ groups:
             check:
               type: command
               target: "ping -c 1 -W 1 google.com"
-            rules:
-              - match:
-                  code: 0
-                status: { id: ok, label: "✅" }
-              - match: {}
-                status: { id: down, label: "🔴" }
+            # rules inherited from defaults
 
       - name: example.com
         link: https://example.com  # makes the whole tile clickable
@@ -274,12 +278,7 @@ groups:
             check:
               type: command
               target: "vmstat 1 2 | tail -1 | awk '{print \"bi=\" $9 \" bo=\" $10 \" kB/s\"}'"
-            rules:
-              - match:
-                  code: 0
-                status: { id: ok, label: "✅" }
-              - match: {}
-                status: { id: error, label: "❌" }
+            # rules inherited from defaults
 ```
 
 

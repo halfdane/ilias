@@ -271,3 +271,115 @@ func TestParse_TestdataFiles(t *testing.T) {
 		})
 	}
 }
+
+func TestParse_DefaultRules_Applied(t *testing.T) {
+	yaml := `
+title: "Test"
+defaults:
+  rules:
+    - match: { code: 0 }
+      status: { id: ok, label: "✅" }
+    - match: {}
+      status: { id: error, label: "❌" }
+groups:
+  - name: "G"
+    tiles:
+      - name: "T"
+        slots:
+          - name: "s"
+            check: { type: command, target: "echo ok" }
+`
+	cfg, err := Parse([]byte(yaml))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	slot := cfg.Groups[0].Tiles[0].Slots[0]
+	if len(slot.Rules) != 2 {
+		t.Fatalf("expected 2 rules from defaults, got %d", len(slot.Rules))
+	}
+	if slot.Rules[0].Status.ID != "ok" {
+		t.Errorf("rule[0].status.id = %q, want %q", slot.Rules[0].Status.ID, "ok")
+	}
+	if slot.Rules[1].Status.ID != "error" {
+		t.Errorf("rule[1].status.id = %q, want %q", slot.Rules[1].Status.ID, "error")
+	}
+}
+
+func TestParse_DefaultRules_OverriddenBySlot(t *testing.T) {
+	yaml := `
+title: "Test"
+defaults:
+  rules:
+    - match: { code: 0 }
+      status: { id: ok, label: "✅" }
+    - match: {}
+      status: { id: error, label: "❌" }
+groups:
+  - name: "G"
+    tiles:
+      - name: "T"
+        slots:
+          - name: "s"
+            check: { type: command, target: "echo ok" }
+            rules:
+              - match: { code: 42 }
+                status: { id: custom, label: "🔧" }
+`
+	cfg, err := Parse([]byte(yaml))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	slot := cfg.Groups[0].Tiles[0].Slots[0]
+	if len(slot.Rules) != 1 {
+		t.Fatalf("expected 1 explicit rule, got %d", len(slot.Rules))
+	}
+	if slot.Rules[0].Status.ID != "custom" {
+		t.Errorf("rule[0].status.id = %q, want %q", slot.Rules[0].Status.ID, "custom")
+	}
+}
+
+func TestParse_NoDefaultRules_SlotWithoutRules_Error(t *testing.T) {
+	yaml := `
+title: "Test"
+groups:
+  - name: "G"
+    tiles:
+      - name: "T"
+        slots:
+          - name: "s"
+            check: { type: command, target: "echo ok" }
+`
+	_, err := Parse([]byte(yaml))
+	if err == nil {
+		t.Fatal("expected error for slot without rules and no defaults")
+	}
+	if !strings.Contains(err.Error(), "at least one rule is required") {
+		t.Errorf("error = %q, want to contain 'at least one rule is required'", err.Error())
+	}
+}
+
+func TestParse_DefaultRules_Validated(t *testing.T) {
+	yaml := `
+title: "Test"
+defaults:
+  rules:
+    - match: {}
+      status: { label: "✅" }
+groups:
+  - name: "G"
+    tiles:
+      - name: "T"
+        slots:
+          - name: "s"
+            check: { type: command, target: "echo ok" }
+`
+	_, err := Parse([]byte(yaml))
+	if err == nil {
+		t.Fatal("expected error for default rule missing status.id")
+	}
+	if !strings.Contains(err.Error(), "defaults") {
+		t.Errorf("error = %q, want to mention 'defaults'", err.Error())
+	}
+}
