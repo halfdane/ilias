@@ -13,7 +13,7 @@
       in
       {
         packages.default =
-          let iliasVersion = "0.1.13"; in
+          let iliasVersion = "0.1.14"; in
           pkgs.buildGoModule {
             pname = "ilias";
             version = iliasVersion;
