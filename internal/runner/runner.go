@@ -82,7 +82,6 @@ func Run(ctx context.Context, cfg *config.Config, opts Options) (*DashboardResul
 
 	var wg sync.WaitGroup
 	var mu sync.Mutex
-	var firstErr error
 
 	for gi, group := range cfg.Groups {
 		result.Groups[gi] = GroupResult{
@@ -102,7 +101,6 @@ func Run(ctx context.Context, cfg *config.Config, opts Options) (*DashboardResul
 			// Run generate command if specified
 			if tile.Generate != nil {
 				wg.Add(1)
-				gi, ti := gi, ti
 				gen := tile.Generate
 				tileName := tile.Name
 				go func() {
@@ -111,16 +109,8 @@ func Run(ctx context.Context, cfg *config.Config, opts Options) (*DashboardResul
 					defer func() { <-sem }()
 
 					if err := runGenerate(ctx, gen, logger, tileName); err != nil {
-						mu.Lock()
-						if firstErr == nil {
-							firstErr = err
-						}
-						mu.Unlock()
 						fmt.Fprintf(logger, "  [warn] generate for %q failed: %v\n", tileName, err)
 					}
-
-					_ = gi
-					_ = ti
 				}()
 			}
 
