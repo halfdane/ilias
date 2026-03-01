@@ -222,6 +222,7 @@ title: My TEST Computer
 theme: dark    # "dark" (default) or "light"
 refresh: 1m   # auto-reload interval; omit to disable
 
+# Defaults are used when nothing is defined at the slot level. They can be overridden by defining rules directly on a slot.
 defaults:
   rules:
     - match:
@@ -230,7 +231,8 @@ defaults:
     - match: {}
       status: { id: error, label: "❌" }
 
-# YAML anchors — reusable fragments ilias doesn't interpret directly
+# YAML anchors: reusable fragments ilias doesn't interpret directly... 
+# it's all just yaml
 _anchors:
   pct_rules: &pct_rules           # works for disk, memory, CPU …
     - match:
@@ -266,14 +268,16 @@ groups:
             rules: *pct_rules
     
       - name: Memory
-        slots: # combine anchors and default rules
+        slots: # combine anchors and default rules as well as check shorthands
           - name: usage
             check: "free | awk '/^Mem:/ {printf \"%.0f%\", $3/$2 * 100}'"
             rules: *pct_rules
           - name: available
             check: "free -h | awk '/^Mem:/ {print $7 \" free\"}'"
+            # uses default rules
           - name: total
             check: "free -h | awk '/^Mem:/ {print $2 \" total\"}'"
+            # uses default rules
 
   - name: Network
     tiles:
