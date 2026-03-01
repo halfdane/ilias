@@ -383,3 +383,137 @@ groups:
 		t.Errorf("error = %q, want to mention 'defaults'", err.Error())
 	}
 }
+
+func TestParse_CheckStringShorthand_Command(t *testing.T) {
+	yaml := `
+title: "Test"
+defaults:
+  rules:
+    - match: {}
+      status: { id: ok, label: "✅" }
+groups:
+  - name: "G"
+    tiles:
+      - name: "T"
+        slots:
+          - name: "s"
+            check: "uptime"
+`
+	cfg, err := Parse([]byte(yaml))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	slot := cfg.Groups[0].Tiles[0].Slots[0]
+	if slot.Check.Type != "command" {
+		t.Errorf("check.type = %q, want %q", slot.Check.Type, "command")
+	}
+	if slot.Check.Target != "uptime" {
+		t.Errorf("check.target = %q, want %q", slot.Check.Target, "uptime")
+	}
+}
+
+func TestParse_CheckStringShorthand_HTTP(t *testing.T) {
+	yaml := `
+title: "Test"
+defaults:
+  rules:
+    - match: {}
+      status: { id: ok, label: "✅" }
+groups:
+  - name: "G"
+    tiles:
+      - name: "T"
+        slots:
+          - name: "s"
+            check: "https://example.com"
+`
+	cfg, err := Parse([]byte(yaml))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	slot := cfg.Groups[0].Tiles[0].Slots[0]
+	if slot.Check.Type != "http" {
+		t.Errorf("check.type = %q, want %q", slot.Check.Type, "http")
+	}
+	if slot.Check.Target != "https://example.com" {
+		t.Errorf("check.target = %q, want %q", slot.Check.Target, "https://example.com")
+	}
+}
+
+func TestParse_CheckMapWithoutType_InferCommand(t *testing.T) {
+	yaml := `
+title: "Test"
+defaults:
+  rules:
+    - match: {}
+      status: { id: ok, label: "✅" }
+groups:
+  - name: "G"
+    tiles:
+      - name: "T"
+        slots:
+          - name: "s"
+            check: { target: "echo ok" }
+`
+	cfg, err := Parse([]byte(yaml))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	slot := cfg.Groups[0].Tiles[0].Slots[0]
+	if slot.Check.Type != "command" {
+		t.Errorf("check.type = %q, want %q", slot.Check.Type, "command")
+	}
+}
+
+func TestParse_CheckMapWithoutType_InferHTTP(t *testing.T) {
+	yaml := `
+title: "Test"
+defaults:
+  rules:
+    - match: {}
+      status: { id: ok, label: "✅" }
+groups:
+  - name: "G"
+    tiles:
+      - name: "T"
+        slots:
+          - name: "s"
+            check: { target: "http://localhost:8080" }
+`
+	cfg, err := Parse([]byte(yaml))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	slot := cfg.Groups[0].Tiles[0].Slots[0]
+	if slot.Check.Type != "http" {
+		t.Errorf("check.type = %q, want %q", slot.Check.Type, "http")
+	}
+}
+
+func TestParse_CheckMapWithExplicitType_Unchanged(t *testing.T) {
+	yaml := `
+title: "Test"
+defaults:
+  rules:
+    - match: {}
+      status: { id: ok, label: "✅" }
+groups:
+  - name: "G"
+    tiles:
+      - name: "T"
+        slots:
+          - name: "s"
+            check: { type: http, target: "https://example.com", timeout: "5s" }
+`
+	cfg, err := Parse([]byte(yaml))
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	slot := cfg.Groups[0].Tiles[0].Slots[0]
+	if slot.Check.Type != "http" {
+		t.Errorf("check.type = %q, want %q", slot.Check.Type, "http")
+	}
+	if slot.Check.Timeout.Seconds() != 5 {
+		t.Errorf("check.timeout = %v, want 5s", slot.Check.Timeout)
+	}
+}

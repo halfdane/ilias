@@ -15,20 +15,16 @@ groups:
     tiles:
       - name: Uptime
         icon: https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linux.svg  # local file or URL, embedded as data URI
-        # link: optional URL — makes the whole tile clickable
+        # link: optional URL makes the whole tile clickable
         slots:
           - name: uptime
-            check:
-              type: command         # "command" or "http"
-              target: uptime        # shell command; stdout+stderr available in rules
-            # rules inherited from defaults (code 0 → ✅, catch-all → ❌)
+            check: uptime           # string shorthand. type inferred as "command"
+            # rules inherited from defaults (code 0 -> ✅, catch-all -> ❌)
 
       - name: Disk (root)
         slots:
           - name: usage
-            check:
-              type: command
-              target: "df / --output=pcent | tail -1 | tr -d ' '"
+            check: "df / --output=pcent | tail -1 | tr -d ' '"
             rules:                  # explicit rules override defaults
               - match:
                   output: "^[0-6]\\d%$|^[0-9]%$"  # regex on stdout+stderr
@@ -43,14 +39,10 @@ groups:
         # a tile can have multiple slots
         slots:
           - name: available
-            check:
-              type: command
-              target: "free -h | awk '/^Mem:/ {print $7 \" free\"}'"  # procps
+            check: "free -h | awk '/^Mem:/ {print $7 \" free\"}'"
             # rules inherited from defaults
           - name: total
-            check:
-              type: command
-              target: "free -h | awk '/^Mem:/ {print $2 \" total\"}'"
+            check: "free -h | awk '/^Mem:/ {print $2 \" total\"}'"
             # rules inherited from defaults
 
   - name: Network
@@ -58,17 +50,14 @@ groups:
       - name: Gateway
         slots:
           - name: ping
-            check:
-              type: command
-              target: "ping -c 1 -W 1 google.com"
+            check: "ping -c 1 -W 1 google.com"
             # rules inherited from defaults
 
       - name: example.com
         link: https://example.com  # makes the whole tile clickable
         slots:
           - name: reachable
-            check:
-              type: http
+            check:                    # type inferred as "http" from target URL
               target: https://example.com
               timeout: 5s
             rules:
@@ -94,7 +83,7 @@ groups:
           src: /tmp/generated_image1.svg
           type: image             # currently the only type; may be omitted
         generate:
-          # pretending to generate a meaningful image here - replace with your actual image generation.
+          # pretending to generate a meaningful image here. Replace with your actual image generation.
           command: >-
             printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 32"><defs><linearGradient id="g"
             x1="0" y1="0" x2="1" y2="0"><stop offset="0%%" stop-color="#2ecc71"/><stop offset="60%%"
@@ -115,7 +104,5 @@ groups:
           timeout: 5s
         slots:
           - name: io
-            check:
-              type: command
-              target: "vmstat 1 2 | tail -1 | awk '{print \"bi=\" $9 \" bo=\" $10 \" kB/s\"}'"
+            check: "vmstat 1 2 | tail -1 | awk '{print \"bi=\" $9 \" bo=\" $10 \" kB/s\"}'"
             # rules inherited from defaults

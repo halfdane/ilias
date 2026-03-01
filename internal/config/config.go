@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -64,6 +65,42 @@ type Check struct {
 	Type    string   `yaml:"type"`   // "http" or "command"
 	Target  string   `yaml:"target"` // URL or command string
 	Timeout Duration `yaml:"timeout,omitempty"`
+}
+
+// UnmarshalYAML supports both a string shorthand and the full map form.
+// String form:  check: "uptime" or check: "https://example.com"
+// Map form:     check: { target: uptime } or check: { type: command, target: uptime }
+// Type is inferred from the target when omitted: targets starting with
+// http:// or https:// become "http"; everything else becomes "command".
+func (c *Check) UnmarshalYAML(value *yaml.Node) error {
+	// Try string shorthand first.
+	if value.Kind == yaml.ScalarNode {
+		c.Target = value.Value
+		c.Type = inferCheckType(c.Target)
+		return nil
+	}
+
+	// Decode as map using an alias type to avoid infinite recursion.
+	type checkAlias Check
+	var alias checkAlias
+	if err := value.Decode(&alias); err != nil {
+		return err
+	}
+	*c = Check(alias)
+
+	// Infer type from target when not specified.
+	if c.Type == "" && c.Target != "" {
+		c.Type = inferCheckType(c.Target)
+	}
+	return nil
+}
+
+// inferCheckType returns "http" if the target looks like a URL, "command" otherwise.
+func inferCheckType(target string) string {
+	if strings.HasPrefix(target, "http://") || strings.HasPrefix(target, "https://") {
+		return "http"
+	}
+	return "command"
 }
 
 // Rule defines a condition and the resulting status if matched.
@@ -261,7 +298,7 @@ func validateSlot(prefix string, si int, s Slot) error {
 	slotPrefix = fmt.Sprintf("%s, slot[%d] %q", prefix, si, s.Name)
 
 	if s.Check.Type == "" {
-		return fmt.Errorf("%s: check.type is required", slotPrefix)
+		return fmt.Errorf("%s: check.type is required (could not be inferred)", slotPrefix)
 	}
 	if s.Check.Type != "http" && s.Check.Type != "command" {
 		return fmt.Errorf("%s: check.type must be \"http\" or \"command\", got %q", slotPrefix, s.Check.Type)

@@ -2,20 +2,20 @@
 
 A static HTML dashboard generator for self-hosted services.
 
-Inspired by [Homer](https://github.com/bastienwirtz/homer) — where Homer serves a beautiful dashboard from a static directory, **ilias takes the idea further**: it actively runs checks (HTTP requests, shell commands) and bakes their results directly into a self-contained HTML file. No JavaScript runtime, no server process, no JavaScript framework. The output is a single `.html` file you can open in a browser or serve with nginx.
+Inspired by [Homer](https://github.com/bastienwirtz/homer): where Homer serves a beautiful dashboard from a static directory, **ilias takes the idea further**: it actively runs checks (HTTP requests, shell commands) and bakes their results directly into a self-contained HTML file. No JavaScript runtime, no server process, no JavaScript framework. The output is a single `.html` file you can open in a browser or serve with nginx.
 
 ## Features
 
-- **Groups and tiles** — organise services into named groups, each with an optional icon and link
-- **HTTP checks** — poll any URL and match against status code and/or response body
-- **Command checks** — run any shell command and match against exit code and/or stdout+stderr output
-- **Flexible match rules** — exact integer matches or regex patterns; catch-all rules for defaults
-- **Generate commands** — run a command before rendering (e.g. to produce a chart image)
-- **Banners** — embed a full-width image inside a tile (e.g. a Prometheus graph)
-- **Tooltips** — hover over any status slot to see the raw check output
-- **Auto-refresh** — configurable page-reload interval
+- **Groups and tiles**: organise services into named groups, each with an optional icon and link
+- **HTTP checks**: poll any URL and match against status code and/or response body
+- **Command checks**: run any shell command and match against exit code and/or stdout+stderr output
+- **Flexible match rules**: exact integer matches or regex patterns; catch-all rules for defaults
+- **Generate commands**: run a command before rendering (e.g. to produce a chart image)
+- **Banners**: embed a full-width image inside a tile (e.g. a Prometheus graph)
+- **Tooltips**: hover over any status slot to see the raw check output
+- **Auto-refresh**: configurable page-reload interval
 - **Dark and light themes**
-- **NixOS module** — systemd timer + optional nginx virtualhost, zero boilerplate
+- **NixOS module**: systemd timer + optional nginx virtualhost, zero boilerplate
 
 ## Installation
 
@@ -28,7 +28,7 @@ ilias requires **bash** on the system PATH. All command checks and generate bloc
 Download a prebuilt binary from the [Releases](https://github.com/halfdane/ilias/releases) page:
 
 ```sh
-# Example for Linux amd64 — adjust version, OS, and arch as needed
+# Example for Linux amd64. Adjust version, OS, and arch as needed
 curl -Lo ilias https://github.com/halfdane/ilias/releases/latest/download/ilias-v0.1.12-linux-amd64
 chmod +x ilias
 sudo mv ilias /usr/local/bin/
@@ -70,7 +70,7 @@ Create a `config.yaml` in the current directory (see [Basic](#basic) and [Full](
 ilias generate
 ```
 
-This reads `config.yaml` and writes `index.html`. Open the html file in a browser — done. See [CLI](#cli) below for additional options.
+This reads `config.yaml` and writes `index.html`. Open the html file in a browser ... done. See [CLI](#cli) below for additional options.
 
 ### Basic
 
@@ -139,7 +139,7 @@ Generated output (`<body>` of the HTML):
 
 ### Default rules
 
-When many slots share the same rules, you can define them once in a top-level `defaults` block. Slots that omit `rules:` inherit the defaults; slots that specify their own rules override the defaults entirely.
+When many slots share the same rules, you can define them once in a top-level `defaults` block. Slots that omit `rules:` inherit the defaults; slots that specify their own rules override the defaults entirely without any merging.
 
 ```yaml
 defaults:
@@ -152,9 +152,36 @@ defaults:
 
 See the [Full](#full) example below for a complete config using default rules.
 
+### Check shorthand
+
+A `check:` block supports three forms, so pick whichever fits:
+
+**String shorthand**: just the target, type is inferred (`http://` / `https://` is `http`, anything else is `command`):
+
+```yaml
+check: uptime                       # command
+check: "https://example.com"        # http
+```
+
+**Map without `type:`**: useful when you need extra fields like `timeout:`, type is still inferred:
+
+```yaml
+check:
+  target: https://example.com
+  timeout: 5s                       # inferred as http
+```
+
+**Explicit `type:`**: always works, nothing inferred:
+
+```yaml
+check:
+  type: command
+  target: uptime
+```
+
 ### Full
 
-Demonstrates every feature — works out of the box on most Linux machines.
+Demonstrates every feature. Should work out of the box on most Linux machines.
 
 [embedmd]:# (testdata/complex.yaml yaml)
 ```yaml
@@ -175,20 +202,16 @@ groups:
     tiles:
       - name: Uptime
         icon: https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linux.svg  # local file or URL, embedded as data URI
-        # link: optional URL — makes the whole tile clickable
+        # link: optional URL makes the whole tile clickable
         slots:
           - name: uptime
-            check:
-              type: command         # "command" or "http"
-              target: uptime        # shell command; stdout+stderr available in rules
-            # rules inherited from defaults (code 0 → ✅, catch-all → ❌)
+            check: uptime           # string shorthand. type inferred as "command"
+            # rules inherited from defaults (code 0 -> ✅, catch-all -> ❌)
 
       - name: Disk (root)
         slots:
           - name: usage
-            check:
-              type: command
-              target: "df / --output=pcent | tail -1 | tr -d ' '"
+            check: "df / --output=pcent | tail -1 | tr -d ' '"
             rules:                  # explicit rules override defaults
               - match:
                   output: "^[0-6]\\d%$|^[0-9]%$"  # regex on stdout+stderr
@@ -203,14 +226,10 @@ groups:
         # a tile can have multiple slots
         slots:
           - name: available
-            check:
-              type: command
-              target: "free -h | awk '/^Mem:/ {print $7 \" free\"}'"  # procps
+            check: "free -h | awk '/^Mem:/ {print $7 \" free\"}'"
             # rules inherited from defaults
           - name: total
-            check:
-              type: command
-              target: "free -h | awk '/^Mem:/ {print $2 \" total\"}'"
+            check: "free -h | awk '/^Mem:/ {print $2 \" total\"}'"
             # rules inherited from defaults
 
   - name: Network
@@ -218,17 +237,14 @@ groups:
       - name: Gateway
         slots:
           - name: ping
-            check:
-              type: command
-              target: "ping -c 1 -W 1 google.com"
+            check: "ping -c 1 -W 1 google.com"
             # rules inherited from defaults
 
       - name: example.com
         link: https://example.com  # makes the whole tile clickable
         slots:
           - name: reachable
-            check:
-              type: http
+            check:                    # type inferred as "http" from target URL
               target: https://example.com
               timeout: 5s
             rules:
@@ -254,7 +270,7 @@ groups:
           src: /tmp/generated_image1.svg
           type: image             # currently the only type; may be omitted
         generate:
-          # pretending to generate a meaningful image here - replace with your actual image generation.
+          # pretending to generate a meaningful image here. Replace with your actual image generation.
           command: >-
             printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 32"><defs><linearGradient id="g"
             x1="0" y1="0" x2="1" y2="0"><stop offset="0%%" stop-color="#2ecc71"/><stop offset="60%%"
@@ -275,9 +291,7 @@ groups:
           timeout: 5s
         slots:
           - name: io
-            check:
-              type: command
-              target: "vmstat 1 2 | tail -1 | awk '{print \"bi=\" $9 \" bo=\" $10 \" kB/s\"}'"
+            check: "vmstat 1 2 | tail -1 | awk '{print \"bi=\" $9 \" bo=\" $10 \" kB/s\"}'"
             # rules inherited from defaults
 ```
 
@@ -316,7 +330,7 @@ ilias <command> [flags]
 **Examples:**
 
 ```sh
-# Minimal — reads config.yaml, writes index.html
+# Minimal: reads config.yaml, writes index.html
 ilias generate
 
 # Explicit paths
@@ -339,19 +353,19 @@ ilias executes **arbitrary shell commands** specified in your config file. The `
 ### The config file is trusted input
 
 - **Protect file permissions.** The config file should be owned by the same user that runs ilias and should not be world-writable (`chmod 640` or stricter).
-- **Don't accept configs from untrusted sources.** If someone else can write to your config file — via a shared NFS mount, a collaborative git repo, or a web upload — they can run any command on your machine as the ilias user.
+- **Don't accept configs from untrusted sources.** If someone else can write to your config file - via a shared NFS mount, a collaborative git repo, or a web upload - they can run any command on your machine as the ilias user.
 - **Use `ilias validate`** to check a config without executing any commands.
 - **Use `ilias generate --dry-run`** to see what would be executed before running it for real.
 
 ### Commands have real consequences
 
-Everything in `check.target` and `generate.command` runs for real. A check like `rm -rf /` will do exactly what you'd expect. ilias does not sandbox, filter, or restrict the commands in any way — they run with the full permissions of the user invoking ilias.
+Everything in `check.target` and `generate.command` runs for real. A check like `rm -rf /` will do exactly what you'd expect. ilias does not sandbox, filter, or restrict the commands in any way - they run with the full permissions of the user invoking ilias.
 
 When writing checks, use **read-only, diagnostic commands**: `ping`, `curl`, `df`, `uptime`, `free`, `systemctl status`, etc. Avoid commands that modify state unless you understand the consequences.
 
 ### Check output is embedded in the HTML
 
-The raw output of every check is included in the generated HTML file as tooltip text (visible on hover and in the page source). If a check command prints sensitive information — passwords, API tokens, internal paths — that data will be permanently baked into the output file. Make sure your checks don't leak secrets.
+The raw output of every check is included in the generated HTML file as tooltip text (visible on hover and in the page source). If a check command prints sensitive information - passwords, API tokens, internal paths - that data will be permanently baked into the output file. Make sure your checks don't leak secrets.
 
 ### Icon and banner files
 
@@ -359,7 +373,7 @@ Icon and banner paths in the config can reference any file on disk that the ilia
 
 ### NixOS module
 
-When using the NixOS module, the systemd service runs with hardening options (`NoNewPrivileges`, `ProtectSystem=strict`, `ProtectHome`, `PrivateTmp`). However, commands in checks and generate blocks still have **full network access** and can execute any binary available on PATH. The sandboxing limits filesystem writes to the output directory — it does not restrict what check commands can do.
+When using the NixOS module, the systemd service runs with hardening options (`NoNewPrivileges`, `ProtectSystem=strict`, `ProtectHome`, `PrivateTmp`). However, commands in checks and generate blocks still have **full network access** and can execute any binary available on PATH. The sandboxing limits filesystem writes to the output directory, it does not restrict what check commands can do.
 
 ## NixOS module
 
@@ -417,7 +431,7 @@ services.ilias = {
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `enable` | bool | — | Enable the service |
+| `enable` | bool | - | Enable the service |
 | `configDir` | path\|null | null | Directory with `config.yaml` and assets (takes precedence over `configFile`) |
 | `configFile` | path\|null | null | Single config file path |
 | `outputPath` | string | `/var/www/ilias/index.html` | Where to write the dashboard HTML |
