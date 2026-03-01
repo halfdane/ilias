@@ -32,6 +32,20 @@
             gopls
             gotools
             go-tools # staticcheck
+
+            # README tooling
+            (buildGoModule {
+              pname = "embedmd";
+              version = "1.0.0";
+              src = fetchFromGitHub {
+                owner = "campoy";
+                repo = "embedmd";
+                rev = "v1.0.0";
+                hash = "sha256-hfMI2d3iRe74nUQ9ydgXUshStk9LFWXkJL1/7ZsEX6g=";
+              };
+              vendorHash = "sha256-uLhXMwnSHFUUiQlpDw/U6fZvNsRuB4cZhxX4qUtdknA=";
+              doCheck = false;
+            })
           ];
         };
       }

@@ -1,62 +1,17 @@
-title: "My Dashboard"
-theme: "dark"
+title: My Dashboard
 
 groups:
-  - name: "Infrastructure"
+  - name: Services
     tiles:
-      - name: "Nextcloud"
-        icon: "icons/nextcloud.png"
-        link: "https://cloud.example.com"
+      - name: Web Server
         slots:
-          - name: "availability"
+          - name: status
             check:
-              type: "http"
-              target: "https://cloud.example.com/status.php"
-              timeout: "10s"
+              type: command
+              target: "echo ok"
             rules:
-              - match:
-                  code: 200
-                status: { id: "ok", label: "✅" }
-              - match:
-                  output: "maintenance.*true"
-                status: { id: "warn", label: "⚠️" }
-              - match: {}
-                status: { id: "unknown", label: "❓" }
-
-      - name: "Grafana"
-        icon: "https://grafana.example.com/icon.png"
-        link: "https://grafana.example.com"
-        slots:
-          - name: "status"
-            check:
-              type: "http"
-              target: "https://grafana.example.com/api/health"
-            rules:
-              - match:
-                  code: 200
-                  output: "ok"
-                status: { id: "ok", label: "✅" }
-              - match: {}
-                status: { id: "down", label: "🔴" }
-
-  - name: "Services"
-    tiles:
-      - name: "Backup"
-        icon: "icons/backup.png"
-        generate:
-          command: "gen-backup-report --output /tmp/backup.png"
-          timeout: "60s"
-        slots:
-          - name: "last-run"
-            default_status: { id: "error", label: "⚡" }
-            check:
-              type: "command"
-              target: "restic snapshots --latest 1 --json"
-              timeout: "15s"
-            rules:
-              - match:
-                  output: "2026-02-2[7-8]"
-                status: { id: "fresh", label: "🟢 Today" }
               - match:
                   code: 0
-                status: { id: "stale", label: "🟡 Old" }
+                status: { id: ok, label: "✅" }
+              - match: {}
+                status: { id: error, label: "❌" }

@@ -10,13 +10,38 @@ Inspired by [Homer](https://github.com/bastienwirtz/homer) — where Homer serve
 - **HTTP checks** — poll any URL and match against status code and/or response body
 - **Command checks** — run any shell command and match against exit code and/or stdout+stderr output
 - **Flexible match rules** — exact integer matches or regex patterns; catch-all rules for defaults
-- **Default status** — fallback status when a check cannot run at all
 - **Generate commands** — run a command before rendering (e.g. to produce a chart image)
 - **Banners** — embed a full-width image inside a tile (e.g. a Prometheus graph)
 - **Tooltips** — hover over any status slot to see the raw check output
 - **Auto-refresh** — configurable page-reload interval
 - **Dark and light themes**
 - **NixOS module** — systemd timer + optional nginx virtualhost, zero boilerplate
+
+## Installation
+
+### Go
+
+```sh
+go install github.com/halfdane/ilias/cmd/ilias@latest
+```
+
+### Nix (flake)
+
+Run directly without installing:
+
+```sh
+nix run github:halfdane/ilias -- generate -c config.yaml
+```
+
+Or add to a devShell / NixOS config (see [NixOS module](#nixos-module) below).
+
+### From source
+
+```sh
+git clone https://github.com/halfdane/ilias.git
+cd ilias
+go build -o ilias ./cmd/ilias
+```
 
 ## Quick start
 
@@ -30,10 +55,40 @@ Or drop a file named `config.yaml` in the current directory and run `ilias gener
 
 ## Configuration
 
-Save as `config.yaml` and run `ilias generate`. The example below works out of the box on most Linux machines and demonstrates every feature.
+Save as `config.yaml` and run `ilias generate`.
 
+<details>
+<summary><strong>Basic example</strong> — minimal config to get started</summary>
+
+[embedmd]:# (testdata/basic.yaml yaml)
 ```yaml
-title: My Computer
+title: My Dashboard
+
+groups:
+  - name: Services
+    tiles:
+      - name: Web Server
+        slots:
+          - name: status
+            check:
+              type: command
+              target: "echo ok"
+            rules:
+              - match:
+                  code: 0
+                status: { id: ok, label: "✅" }
+              - match: {}
+                status: { id: error, label: "❌" }
+```
+
+</details>
+
+<details>
+<summary><strong>Full example</strong> — demonstrates every feature (works out of the box on most Linux machines)</summary>
+
+[embedmd]:# (testdata/complex.yaml yaml)
+```yaml
+title: My TEST Computer
 theme: dark    # "dark" (default) or "light"
 refresh: 1m   # auto-reload interval; omit to disable
 
@@ -41,7 +96,7 @@ groups:
   - name: System
     tiles:
       - name: Uptime
-        # icon: optional local file or http(s) URL embedded as a data URI
+        icon: https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linux.svg  # local file or URL, embedded as data URI
         # link: optional URL — makes the whole tile clickable
         slots:
           - name: uptime
@@ -72,6 +127,7 @@ groups:
                 status: { id: critical, label: "🔴 ≥90%" }
 
       - name: Memory
+        # a tile can have multiple slots
         slots:
           - name: available
             check:
@@ -83,7 +139,16 @@ groups:
                 status: { id: ok, label: "✅" }
               - match: {}
                 status: { id: error, label: "❌" }
-
+          - name: total
+            check:
+              type: command
+              target: "free -h | awk '/^Mem:/ {print $2 \" total\"}'"
+            rules:
+              - match:
+                  code: 0
+                status: { id: ok, label: "✅" }
+              - match: {}
+                status: { id: error, label: "❌" }
   - name: Network
     tiles:
       - name: Gateway
@@ -100,7 +165,7 @@ groups:
                 status: { id: down, label: "🔴" }
 
       - name: example.com
-        link: https://example.com
+        link: https://example.com  # makes the whole tile clickable
         slots:
           - name: reachable
             check:
@@ -116,7 +181,7 @@ groups:
                   code: "5\\d\\d"         # regex on status code
                 status: { id: error, label: "🔴 5xx" }
               - match:
-                  output: "certificate|x509|tls"  # TLS/cert errors (no code — match on error message)
+                  output: "certificate|x509|tls"  # output rules also match connection errors
                 status: { id: cert-error, label: "🔒 cert error" }
               - match: {}
                 status: { id: down, label: "🔴" }
@@ -128,9 +193,9 @@ groups:
       - name: Some generated image
         banner:
           src: /tmp/generated_image1.svg
+          type: image             # currently the only type; may be omitted
         generate:
-          # Some command that actually generates the image. 
-          # This is just an example!
+          # Pure-shell SVG: shows a gradient bar — no extra tools needed.
           command: >-
             printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 32"><defs><linearGradient id="g"
             x1="0" y1="0" x2="1" y2="0"><stop offset="0%%" stop-color="#2ecc71"/><stop offset="60%%"
@@ -161,6 +226,8 @@ groups:
               - match: {}
                 status: { id: error, label: "❌" }
 ```
+
+</details>
 
 ## CLI
 

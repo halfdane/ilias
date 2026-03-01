@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -238,6 +240,33 @@ func TestParse_ValidationErrors(t *testing.T) {
 			}
 			if !strings.Contains(err.Error(), tt.wantErr) {
 				t.Errorf("error = %q, want to contain %q", err.Error(), tt.wantErr)
+			}
+		})
+	}
+}
+
+// TestParse_TestdataFiles ensures all YAML files in testdata/ parse and validate
+// successfully. This catches regressions in the example configs (including the
+// one embedded into the README via embedmd).
+func TestParse_TestdataFiles(t *testing.T) {
+	testdataDir := filepath.Join("..", "..", "testdata")
+	entries, err := os.ReadDir(testdataDir)
+	if err != nil {
+		t.Fatalf("reading testdata dir: %v", err)
+	}
+
+	for _, e := range entries {
+		if e.IsDir() || filepath.Ext(e.Name()) != ".yaml" {
+			continue
+		}
+		t.Run(e.Name(), func(t *testing.T) {
+			data, err := os.ReadFile(filepath.Join(testdataDir, e.Name()))
+			if err != nil {
+				t.Fatalf("reading file: %v", err)
+			}
+			_, err = Parse(data)
+			if err != nil {
+				t.Errorf("parse/validate failed: %v", err)
 			}
 		})
 	}

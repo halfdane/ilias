@@ -1,4 +1,4 @@
-title: My Computer
+title: My TEST Computer
 theme: dark    # "dark" (default) or "light"
 refresh: 1m   # auto-reload interval; omit to disable
 
@@ -6,7 +6,7 @@ groups:
   - name: System
     tiles:
       - name: Uptime
-        # icon: optional local file or http(s) URL embedded as a data URI
+        icon: https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/linux.svg  # local file or URL, embedded as data URI
         # link: optional URL — makes the whole tile clickable
         slots:
           - name: uptime
@@ -37,6 +37,7 @@ groups:
                 status: { id: critical, label: "🔴 ≥90%" }
 
       - name: Memory
+        # a tile can have multiple slots
         slots:
           - name: available
             check:
@@ -48,7 +49,16 @@ groups:
                 status: { id: ok, label: "✅" }
               - match: {}
                 status: { id: error, label: "❌" }
-
+          - name: total
+            check:
+              type: command
+              target: "free -h | awk '/^Mem:/ {print $2 \" total\"}'"
+            rules:
+              - match:
+                  code: 0
+                status: { id: ok, label: "✅" }
+              - match: {}
+                status: { id: error, label: "❌" }
   - name: Network
     tiles:
       - name: Gateway
@@ -65,7 +75,7 @@ groups:
                 status: { id: down, label: "🔴" }
 
       - name: example.com
-        link: https://example.com
+        link: https://example.com  # makes the whole tile clickable
         slots:
           - name: reachable
             check:
@@ -81,7 +91,7 @@ groups:
                   code: "5\\d\\d"         # regex on status code
                 status: { id: error, label: "🔴 5xx" }
               - match:
-                  output: "certificate|x509|tls"  # connection-level TLS errors
+                  output: "certificate|x509|tls"  # output rules also match connection errors
                 status: { id: cert-error, label: "🔒 cert error" }
               - match: {}
                 status: { id: down, label: "🔴" }
@@ -93,6 +103,7 @@ groups:
       - name: Some generated image
         banner:
           src: /tmp/generated_image1.svg
+          type: image             # currently the only type; may be omitted
         generate:
           # Pure-shell SVG: shows a gradient bar — no extra tools needed.
           command: >-
