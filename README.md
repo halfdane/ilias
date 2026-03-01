@@ -129,7 +129,8 @@ groups:
         banner:
           src: /tmp/generated_image1.svg
         generate:
-          # Pure-shell SVG: shows a gradient bar — no extra tools needed.
+          # Some command that actually generates the image. 
+          # This is just an example!
           command: >-
             printf '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 32"><defs><linearGradient id="g"
             x1="0" y1="0" x2="1" y2="0"><stop offset="0%%" stop-color="#2ecc71"/><stop offset="60%%"
