@@ -20,7 +20,7 @@ in
       default = null;
       description = ''
         Directory containing the ilias config file and any local icon assets.
-        The config file must be named <literal>config.yaml</literal> inside
+        The config file must be named `config.yaml` inside
         this directory. Icon paths in the config are resolved relative to it.
 
         When set to a path literal in your NixOS configuration, Nix copies the
@@ -32,7 +32,7 @@ in
           │   └── logo.png
           └── config.yaml
 
-        Takes precedence over <option>configFile</option> when set.
+        Takes precedence over `configFile` when set.
       '';
     };
 
@@ -41,7 +41,7 @@ in
       default = null;
       description = ''
         Path to the ilias YAML configuration file. Use
-        <option>configDir</option> instead when you have local icon assets
+        `configDir` instead when you have local icon assets
         alongside the config.
       '';
     };
@@ -104,8 +104,8 @@ in
         default = null;
         description = ''
           Use the ACME certificate for this hostname (sets
-          <literal>useACMEHost</literal> on the virtual host). Implies
-          <option>forceSSL</option> is likely desired.
+          `useACMEHost` on the virtual host). Implies
+          `forceSSL` is likely desired.
         '';
       };
     };
