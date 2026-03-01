@@ -3,6 +3,22 @@ set -e
 
 cd "$(git rev-parse --show-toplevel)"
 
+# ── Pre-flight checks ───────────────────────────────────────────────────
+echo "Running tests..."
+go test ./...
+
+echo "Checking README is up to date..."
+go test ./cmd/ilias/ # regenerates testdata/*.html
+embedmd -w README.md
+
+# If tests/embedmd changed any tracked files, abort so the user can review.
+if ! git diff --quiet HEAD; then
+  echo "⚠️  Working tree has uncommitted changes (tests or embedmd updated files)." >&2
+  echo "   Please review, commit, and re-run." >&2
+  exit 1
+fi
+
+# ── Bump version ─────────────────────────────────────────────────────────
 # Read current version from flake.nix
 CURRENT=$(grep 'iliasVersion = "' flake.nix | sed 's/.*iliasVersion = "\([^"]*\)".*/\1/')
 if [[ -z "$CURRENT" ]]; then
