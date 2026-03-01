@@ -68,8 +68,33 @@ type Rule struct {
 
 // Match defines the conditions for a rule. An empty match is a catch-all.
 type Match struct {
-	Code   *MatchValue `yaml:"code,omitempty"`
-	Output string      `yaml:"output,omitempty"`
+	Code   *MatchValue    `yaml:"code,omitempty"`
+	Output *regexp.Regexp `yaml:"-"` // compiled from the "output" YAML field
+}
+
+// UnmarshalYAML implements custom unmarshalling for Match to compile the
+// output regex at parse time.
+func (m *Match) UnmarshalYAML(value *yaml.Node) error {
+	// Decode into an auxiliary struct to avoid infinite recursion.
+	var aux struct {
+		Code   *MatchValue `yaml:"code,omitempty"`
+		Output string      `yaml:"output,omitempty"`
+	}
+	if err := value.Decode(&aux); err != nil {
+		return err
+	}
+
+	m.Code = aux.Code
+
+	if aux.Output != "" {
+		re, err := regexp.Compile(aux.Output)
+		if err != nil {
+			return fmt.Errorf("invalid output regex %q: %w", aux.Output, err)
+		}
+		m.Output = re
+	}
+
+	return nil
 }
 
 // MatchValue can be an integer (exact match) or a string (regex match).
@@ -230,12 +255,7 @@ func validateSlot(prefix string, si int, s Slot) error {
 		if r.Status.Label == "" {
 			return fmt.Errorf("%s, rule[%d]: status.label is required", slotPrefix, ri)
 		}
-		// Validate output regex if present
-		if r.Match.Output != "" {
-			if _, err := regexp.Compile(r.Match.Output); err != nil {
-				return fmt.Errorf("%s, rule[%d]: invalid output regex %q: %w", slotPrefix, ri, r.Match.Output, err)
-			}
-		}
+		// Output regex is already compiled during YAML unmarshalling.
 	}
 
 	return nil

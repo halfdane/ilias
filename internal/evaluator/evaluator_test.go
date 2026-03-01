@@ -48,7 +48,7 @@ func TestEvaluate_RegexCodeMatch(t *testing.T) {
 func TestEvaluate_OutputRegexMatch(t *testing.T) {
 	rules := []config.Rule{
 		{
-			Match:  config.Match{Output: "maintenance.*true"},
+			Match:  config.Match{Output: regexp.MustCompile("maintenance.*true")},
 			Status: config.Status{ID: "warn", Label: "⚠️"},
 		},
 	}
@@ -65,7 +65,7 @@ func TestEvaluate_CombinedMatch(t *testing.T) {
 		{
 			Match: config.Match{
 				Code:   &config.MatchValue{Exact: intPtr(0)},
-				Output: "update available",
+				Output: regexp.MustCompile("update available"),
 			},
 			Status: config.Status{ID: "update", Label: "🔄"},
 		},
@@ -197,7 +197,7 @@ func TestEvaluate_CheckError_OutputRuleMatches(t *testing.T) {
 	// When check has error, output rules CAN match (e.g. TLS cert errors).
 	rules := []config.Rule{
 		{
-			Match:  config.Match{Output: "certificate|x509"},
+			Match:  config.Match{Output: regexp.MustCompile("certificate|x509")},
 			Status: config.Status{ID: "cert-error", Label: "🔒"},
 		},
 		{

@@ -112,14 +112,14 @@ groups:
 
 	// Second rule: output regex match
 	r1 := slot.Rules[1]
-	if r1.Match.Output != "maintenance.*true" {
-		t.Errorf("rule[1] output = %q, want %q", r1.Match.Output, "maintenance.*true")
+	if r1.Match.Output == nil || !r1.Match.Output.MatchString(`{"maintenance": true}`) {
+		t.Errorf("rule[1] output regex should match maintenance text, got %v", r1.Match.Output)
 	}
 
 	// Third rule: catch-all (empty match)
 	r2 := slot.Rules[2]
-	if r2.Match.Code != nil || r2.Match.Output != "" {
-		t.Errorf("rule[2] should be catch-all, got code=%v output=%q", r2.Match.Code, r2.Match.Output)
+	if r2.Match.Code != nil || r2.Match.Output != nil {
+		t.Errorf("rule[2] should be catch-all, got code=%v output=%v", r2.Match.Code, r2.Match.Output)
 	}
 }
 

@@ -2,8 +2,6 @@
 package evaluator
 
 import (
-	"fmt"
-	"regexp"
 	"strconv"
 
 	"github.com/halfdane/ilias/internal/checker"
@@ -36,8 +34,8 @@ func matchesRule(result checker.Result, match config.Match) bool {
 		if match.Code != nil {
 			return false
 		}
-		if match.Output != "" {
-			return matchOutput(result.Output, match.Output)
+		if match.Output != nil {
+			return match.Output.MatchString(result.Output)
 		}
 		// match: {} — catch-all
 		return true
@@ -54,9 +52,9 @@ func matchesRule(result checker.Result, match config.Match) bool {
 	}
 
 	// Check output match
-	if match.Output != "" {
+	if match.Output != nil {
 		hasCondition = true
-		if !matchOutput(result.Output, match.Output) {
+		if !match.Output.MatchString(result.Output) {
 			return false
 		}
 	}
@@ -79,16 +77,4 @@ func matchCode(code int, mv *config.MatchValue) bool {
 		return mv.Regex.MatchString(strconv.Itoa(code))
 	}
 	return false
-}
-
-// matchOutput checks if the result output matches the regex pattern.
-func matchOutput(output, pattern string) bool {
-	re, err := regexp.Compile(pattern)
-	if err != nil {
-		// This should have been caught during config validation,
-		// but be defensive.
-		fmt.Printf("warning: invalid output regex %q: %v\n", pattern, err)
-		return false
-	}
-	return re.MatchString(output)
 }
