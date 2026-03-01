@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -24,8 +25,9 @@ func TestHTTPChecker_Success(t *testing.T) {
 	if result.Code != 200 {
 		t.Errorf("code = %d, want 200", result.Code)
 	}
-	if result.Output != "HTTP 200 OK" {
-		t.Errorf("output = %q, want %q", result.Output, "HTTP 200 OK")
+	wantOutput := "HTTP 200 OK\n\n{\"status\": \"ok\"}"
+	if result.Output != wantOutput {
+		t.Errorf("output = %q, want %q", result.Output, wantOutput)
 	}
 }
 
@@ -44,6 +46,31 @@ func TestHTTPChecker_ServerError(t *testing.T) {
 	}
 	if result.Code != 500 {
 		t.Errorf("code = %d, want 500", result.Code)
+	}
+	wantOutput := "HTTP 500 Internal Server Error\n\nInternal Server Error"
+	if result.Output != wantOutput {
+		t.Errorf("output = %q, want %q", result.Output, wantOutput)
+	}
+}
+
+func TestHTTPChecker_BodyMatching(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("<html><body>Example Domain</body></html>"))
+	}))
+	defer server.Close()
+
+	checker := &HTTPChecker{URL: server.URL, Timeout: 5 * time.Second}
+	result := checker.Check(context.Background())
+
+	if result.Err != nil {
+		t.Fatalf("unexpected error: %v", result.Err)
+	}
+	if !strings.Contains(result.Output, "Example Domain") {
+		t.Errorf("output should contain body text, got %q", result.Output)
+	}
+	if !strings.Contains(result.Output, "HTTP 200 OK") {
+		t.Errorf("output should contain status line, got %q", result.Output)
 	}
 }
 

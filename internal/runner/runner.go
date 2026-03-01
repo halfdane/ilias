@@ -199,5 +199,11 @@ func runSlot(ctx context.Context, slot config.Slot, logger io.Writer, tileName s
 	status := evaluator.Evaluate(result, slot.Rules)
 	fmt.Fprintf(logger, "  [result] %s/%s: %s %s\n", tileName, slot.Name, status.ID, status.Label)
 
+	// Truncate output for tooltip display to avoid bloating the HTML.
+	const maxTooltipLen = 4096
+	if len(output) > maxTooltipLen {
+		output = output[:maxTooltipLen] + "\n... (truncated)"
+	}
+
 	return SlotResult{Name: slot.Name, Status: status, Output: output}
 }

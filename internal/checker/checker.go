@@ -68,12 +68,25 @@ func (c *HTTPChecker) Check(ctx context.Context) Result {
 	}
 	defer resp.Body.Close()
 
-	// Drain and discard body so the connection can be reused.
-	_, _ = io.Copy(io.Discard, resp.Body)
+	// Read body (capped at 1 MiB) so output-matching rules can inspect it.
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	if err != nil {
+		return Result{
+			Code:   resp.StatusCode,
+			Output: fmt.Sprintf("HTTP %d %s", resp.StatusCode, http.StatusText(resp.StatusCode)),
+			Err:    fmt.Errorf("reading response body: %w", err),
+		}
+	}
+
+	statusLine := fmt.Sprintf("HTTP %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
+	output := statusLine
+	if len(body) > 0 {
+		output = statusLine + "\n\n" + string(body)
+	}
 
 	return Result{
 		Code:   resp.StatusCode,
-		Output: fmt.Sprintf("HTTP %d %s", resp.StatusCode, http.StatusText(resp.StatusCode)),
+		Output: output,
 	}
 }
 
