@@ -1,3 +1,31 @@
+/* Banner pop-out styles */
+.banner-popout-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.8);
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.banner-img.popout {
+  position: fixed !important;
+  top: 50%;
+  left: 50%;
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+  border-radius: 8px;
+  background: #222;
+  cursor: zoom-out;
+  transition: box-shadow 0.2s;
+}
 /* ilias dashboard styles */
 :root {
   --bg: #1a1b26;
