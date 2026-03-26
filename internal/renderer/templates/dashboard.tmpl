@@ -63,6 +63,7 @@
       document.querySelectorAll('.banner-img').forEach(function(img) {
         img.addEventListener('click', function(e) {
           e.stopPropagation();
+          e.preventDefault();
           var isPopout = img.classList.toggle('popout');
           if (isPopout) {
             overlay = document.createElement('div');
