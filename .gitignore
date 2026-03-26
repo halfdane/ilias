@@ -21,3 +21,6 @@ result-*
 
 # OS
 .DS_Store
+
+# just random generated files
+index.html
